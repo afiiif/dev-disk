@@ -1,0 +1,47 @@
+name: Test Multiple Versions
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: yarn
+      - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - run: yarn install --frozen-lockfile --check-files
+      - name: Test Build # we don't have any other workflows to test build
+        run: yarn build
+      - name: Test Default
+        run: yarn test:ci
+
+  test_matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        react:
+          - 18.0.0
+          - 18.1.0
+          - 18.2.0
+          - 18.3.0-canary-feed8f3f9-20240118
+          - 0.0.0-experimental-feed8f3f9-20240118
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: yarn
+      - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - run: yarn install --frozen-lockfile --check-files
+      - name: Test ${{ matrix.react }}
+        run: |
+          yarn add -D react@${{ matrix.react }} react-dom@${{ matrix.react }}
+          yarn test:ci

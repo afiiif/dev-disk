@@ -1,0 +1,26 @@
+name: Lint and Type
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: yarn
+      - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - run: yarn install --frozen-lockfile --check-files
+      - run: cd examples/demo && yarn install --frozen-lockfile --check-files
+      - name: Prettier
+        run: yarn prettier:ci
+      - name: Lint
+        run: yarn eslint:ci
+      - name: Type
+        run: yarn pretest
