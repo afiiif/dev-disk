@@ -13,8 +13,8 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "zustand": ["./src/index.ts"],
-      "zustand/*": ["./src/*.ts"],
+      "dev-disk": ["./src/index.ts"],
+      "dev-disk/*": ["./src/*.ts"],
     },
   },
   "include": ["src/**/*", "tests/**/*"],

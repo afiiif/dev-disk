@@ -61,12 +61,7 @@
     "build:base": "rollup -c",
     "build:vanilla": "rollup -c --config-vanilla",
     "build:react": "rollup -c --config-react",
-    "build:middleware": "rollup -c --config-middleware",
-    "build:middleware:immer": "rollup -c --config-middleware_immer",
-    "build:shallow": "rollup -c --config-shallow",
-    "build:vanilla:shallow": "rollup -c --config-vanilla_shallow",
-    "build:react:shallow": "rollup -c --config-react_shallow",
-    "build:traditional": "rollup -c --config-traditional",
+    "build:react:baz": "rollup -c --config-react_baz",
     "postbuild": "yarn patch-d-ts && yarn copy && yarn patch-old-ts && yarn patch-esm-ts",
     "prettier": "prettier \"*.{js,json,md}\" \"{examples,src,tests,docs}/**/*.{js,jsx,ts,tsx,md,mdx}\" --write",
     "prettier:ci": "prettier '*.{js,json,md}' '{examples,src,tests,docs}/**/*.{js,jsx,ts,tsx,md,mdx}' --list-different",
@@ -127,22 +122,14 @@
     "vitest": "0.33.0"
   },
   "peerDependencies": {
-    "@types/react": ">=18.0",
-    "immer": ">=9.0.6",
-    "react": ">=18.0",
-    "use-sync-external-store": ">=1.2.0"
+    "@types/react": ">=16.8",
+    "react": ">=16.8"
   },
   "peerDependenciesMeta": {
     "@types/react": {
       "optional": true
     },
-    "immer": {
-      "optional": true
-    },
     "react": {
-      "optional": true
-    },
-    "use-sync-external-store": {
       "optional": true
     }
   },

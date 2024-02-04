@@ -99,8 +99,8 @@
       "alias": {
         "extensions": [".js", ".jsx", ".ts", ".tsx"],
         "map": [
-          ["^zustand$", "./src/index.ts"],
-          ["zustand", "./src"]
+          ["^dev-disk$", "./src/index.ts"],
+          ["dev-disk", "./src"]
         ]
       }
     }
