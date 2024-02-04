@@ -8,20 +8,11 @@
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "prettier",
-    "plugin:prettier/recommended",
     "plugin:react-hooks/recommended",
     "plugin:import/errors",
     "plugin:import/warnings"
   ],
-  "plugins": [
-    "@typescript-eslint",
-    "react",
-    "prettier",
-    "react-hooks",
-    "import",
-    "vitest"
-  ],
+  "plugins": ["@typescript-eslint", "react", "react-hooks", "import", "vitest"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2018,
@@ -48,25 +39,14 @@
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/no-empty-function": "off",
     "@typescript-eslint/no-explicit-any": "off",
-    "vitest/consistent-test-it": [
-      "error",
-      { "fn": "it", "withinDescribe": "it" }
-    ],
+    "vitest/consistent-test-it": ["error", { "fn": "it", "withinDescribe": "it" }],
     "import/namespace": "off",
     "import/named": "off",
     "import/order": [
       "error",
       {
         "alphabetize": { "order": "asc", "caseInsensitive": true },
-        "groups": [
-          "builtin",
-          "external",
-          "internal",
-          "parent",
-          "sibling",
-          "index",
-          "object"
-        ],
+        "groups": ["builtin", "external", "internal", "parent", "sibling", "index", "object"],
         "newlines-between": "never",
         "pathGroups": [
           {

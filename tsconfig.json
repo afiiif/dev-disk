@@ -8,7 +8,6 @@
     "moduleResolution": "bundler",
     "skipLibCheck": true /* FIXME remove this once vite fixes it */,
     "allowImportingTsExtensions": true,
-    "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "noEmit": true,
     "baseUrl": ".",

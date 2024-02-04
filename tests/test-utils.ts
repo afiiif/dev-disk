@@ -3,10 +3,7 @@ type ReplacedMap = {
   value: [string, unknown][]
 }
 
-export const replacer = (
-  key: string,
-  value: unknown,
-): ReplacedMap | unknown => {
+export const replacer = (key: string, value: unknown): ReplacedMap | unknown => {
   if (value instanceof Map) {
     return {
       type: 'Map',

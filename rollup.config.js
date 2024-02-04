@@ -68,13 +68,8 @@ function createESMConfig(input, output) {
       resolve({ extensions }),
       replace({
         ...(output.endsWith('.js')
-          ? {
-              'import.meta.env?.MODE': 'process.env.NODE_ENV',
-            }
-          : {
-              'import.meta.env?.MODE':
-                '(import.meta.env ? import.meta.env.MODE : undefined)',
-            }),
+          ? { 'import.meta.env?.MODE': 'process.env.NODE_ENV' }
+          : { 'import.meta.env?.MODE': '(import.meta.env ? import.meta.env.MODE : undefined)' }),
         // a workaround for #829
         'use-sync-external-store/shim/with-selector':
           'use-sync-external-store/shim/with-selector.js',
