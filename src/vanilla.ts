@@ -1,2 +1,2 @@
-export * from './vanilla/foo.ts'
-export * from './vanilla/bar.ts'
+export * from './vanilla/utils.ts'
+export * from './vanilla/store.ts'
