@@ -1,2 +1,1 @@
-export * from './react/foo.ts'
-export * from './react/bar.ts'
+export * from './react/create-store.ts'

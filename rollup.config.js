@@ -11,7 +11,6 @@ const { root } = path.parse(process.cwd())
 const entries = [
   { find: /.*\/vanilla\.ts$/, replacement: 'dev-disk/vanilla' },
   { find: /.*\/react\.ts$/, replacement: 'dev-disk/react' },
-  { find: /.*\/react\/baz\.ts$/, replacement: 'dev-disk/react/baz' },
 ]
 
 function external(id) {
