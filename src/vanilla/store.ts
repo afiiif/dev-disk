@@ -9,6 +9,7 @@ export type StoreApi<T> = {
   set: (value: SetState<T>, silent?: boolean) => void
   subscribe: (subscriber: Subscriber<T>) => () => void
   getSubscribers: () => Set<Subscriber<T>>
+  getInitial: () => T
 }
 
 export type StoreInitializer<T> = T | ((store: StoreApi<T>) => T)
@@ -35,6 +36,7 @@ export const initStore = <T extends Record<string, any>>(
 
   let state: T
   const get = () => state
+  const getInitial = () => initialState
 
   const subscribers = new Set<Subscriber<T>>()
   const getSubscribers = () => subscribers
@@ -57,8 +59,8 @@ export const initStore = <T extends Record<string, any>>(
     }
   }
 
-  const store = { get, set, subscribe, getSubscribers }
-  const initialState = getValue(initializer, store)
+  const store = { get, set, subscribe, getSubscribers, getInitial }
+  const initialState: T = getValue(initializer, store)
   state = initialState
   return store
 }
