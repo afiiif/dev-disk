@@ -9,9 +9,7 @@ import { Maybe, getValue, identity, noop } from '../vanilla/utils.ts'
 export type UseStores<TKey extends Record<string, any>, T extends Record<string, any>> = {
   <U = T>(...args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]): U
   getStore: (key?: Maybe<TKey>) => StoreApi<T>
-  use: {
-    setInitialValue: (key: Maybe<TKey>, value: SetState<T>) => void
-  }
+  useInitialValue: (key: Maybe<TKey>, value: SetState<T>) => void
 }
 
 export type StoresInitializer<TKey extends Record<string, any>, T extends Record<string, any>> =
@@ -89,25 +87,22 @@ export const createStores = <TKey extends Record<string, any>, T extends Record<
     return selector(store.get())
   }
 
-  const use: UseStores<TKey, T>['use'] = {
-    setInitialValue: (key, value) => {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      useState(() => {
-        // Note: Put `store.set(value)` inside of useState to ensure it is only invoked once.
-        const store = getStore(key)
-        if (store.getSubscribers().size > 0) {
-          console.warn(
-            'The store already have subscriber.',
-            'Consider calling setInitialValue on higher component, before any component subscribed.',
-          )
-        }
-        store.set(value)
-      })
-    },
+  const useInitialValue: UseStores<TKey, T>['useInitialValue'] = (key, value) => {
+    useState(() => {
+      // Note: Put `store.set(value)` inside of useState to ensure it is only invoked once.
+      const store = getStore(key)
+      if (store.getSubscribers().size > 0) {
+        console.warn(
+          'The store already have subscriber.',
+          'Consider calling setInitialValue on higher component, before any component subscribed.',
+        )
+      }
+      store.set(value)
+    })
   }
 
   return Object.assign(useStores, {
     getStore,
-    use,
+    useInitialValue,
   })
 }

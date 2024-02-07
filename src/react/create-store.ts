@@ -14,9 +14,7 @@ import { identity } from '../vanilla/utils.ts'
 
 export type UseStore<T extends Record<string, any>> = {
   <U = T>(selector?: (state: T) => U): U
-  use: {
-    setInitialValue: (value: SetState<T>) => void
-  }
+  useInitialValue: (value: SetState<T>) => void
 } & StoreApi<T>
 
 // ----------------------------------------
@@ -42,21 +40,18 @@ export const createStore = <T extends Record<string, any>>(
     return selector(store.get())
   }
 
-  const use: UseStore<T>['use'] = {
-    setInitialValue: (value) => {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      useState(() => {
-        // Note: Put `store.set(value)` inside of useState to ensure it is only invoked once.
-        if (store.getSubscribers().size > 0) {
-          console.warn(
-            'The store already have subscriber.',
-            'Consider calling setInitialValue on higher component, before any component subscribed.',
-          )
-        }
-        store.set(value)
-      })
-    },
+  const useInitialValue: UseStore<T>['useInitialValue'] = (value) => {
+    useState(() => {
+      // Note: Put `store.set(value)` inside of useState to ensure it is only invoked once.
+      if (store.getSubscribers().size > 0) {
+        console.warn(
+          'The store already have subscriber.',
+          'Consider calling setInitialValue on higher component, before any component subscribed.',
+        )
+      }
+      store.set(value)
+    })
   }
 
-  return Object.assign(useStore, { ...store, use })
+  return Object.assign(useStore, { ...store, useInitialValue })
 }
