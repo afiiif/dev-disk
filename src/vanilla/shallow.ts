@@ -28,14 +28,14 @@ export function shallow<T>(objA: T, objB: T) {
     return true
   }
 
-  const keysA = Object.keys(objA)
+  const keysA = Object.keys(objA) as (keyof T)[]
   if (keysA.length !== Object.keys(objB).length) {
     return false
   }
   for (let i = 0; i < keysA.length; i++) {
     if (
-      !Object.prototype.hasOwnProperty.call(objB, keysA[i] as string) ||
-      !Object.is(objA[keysA[i] as keyof T], objB[keysA[i] as keyof T])
+      !Object.prototype.hasOwnProperty.call(objB, keysA[i]) ||
+      !Object.is(objA[keysA[i]], objB[keysA[i]])
     ) {
       return false
     }
