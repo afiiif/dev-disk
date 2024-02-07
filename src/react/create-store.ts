@@ -9,12 +9,18 @@ import {
 } from '../vanilla/store.ts'
 import { identity } from '../vanilla/utils.ts'
 
+// ----------------------------------------
+// Type definitions
+
 export type UseStore<T> = {
   <U = T>(selector?: (state: T) => U): U
   use: {
     setInitialValue: (value: SetState<T>) => void
   }
 } & StoreApi<T>
+
+// ----------------------------------------
+// Source code
 
 export const createStore = <T extends Record<string, any>>(
   initializer: StoreInitializer<T>,

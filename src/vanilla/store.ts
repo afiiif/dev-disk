@@ -1,5 +1,8 @@
 import { Maybe, getValue, noop } from './utils.ts'
 
+// ----------------------------------------
+// Type definitions
+
 export type SetState<T> = Partial<T> | ((state: T) => Partial<T>)
 
 export type Subscriber<T> = (state: T, prevState: T) => void
@@ -21,6 +24,9 @@ export type InitStoreOptions<T> = {
   onUnsubscribe?: (state: T) => void
   onLastUnsubscribe?: (state: T) => void
 }
+
+// ----------------------------------------
+// Source code
 
 export const initStore = <T extends Record<string, any>>(
   initializer: StoreInitializer<T>,
