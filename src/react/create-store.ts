@@ -7,9 +7,10 @@ import {
   StoreInitializer,
   initStore,
 } from '../vanilla/store.ts'
+import { identity } from '../vanilla/utils.ts'
 
 export type UseStore<T> = {
-  <U = T>(selector: (state: T) => U): U
+  <U = T>(selector?: (state: T) => U): U
   use: {
     setInitialValue: (value: SetState<T>) => void
   }
@@ -21,7 +22,7 @@ export const createStore = <T extends Record<string, any>>(
 ) => {
   const store = initStore(initializer, options)
 
-  const useStore = <U = T>(selector: (state: T) => U) => {
+  const useStore = <U = T>(selector: (state: T) => U = identity as (state: T) => U) => {
     const refSelector = useRef(selector)
     const refInitialState = useRef<U>()
     useState(() => {
