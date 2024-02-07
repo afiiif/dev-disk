@@ -7,7 +7,7 @@ export type SetState<T> = Partial<T> | ((state: T) => Partial<T>)
 
 export type Subscriber<T> = (state: T, prevState: T) => void
 
-export type StoreApi<T> = {
+export type StoreApi<T extends Record<string, any>> = {
   get: () => T
   set: (value: SetState<T>, silent?: boolean) => void
   subscribe: (subscriber: Subscriber<T>) => () => void
@@ -15,9 +15,9 @@ export type StoreApi<T> = {
   getInitial: () => T
 }
 
-export type StoreInitializer<T> = T | ((store: StoreApi<T>) => T)
+export type StoreInitializer<T extends Record<string, any>> = T | ((store: StoreApi<T>) => T)
 
-export type InitStoreOptions<T> = {
+export type InitStoreOptions<T extends Record<string, any>> = {
   intercept?: (nextState: T, prevState: T) => void | Maybe<Partial<T>>
   onFirstSubscribe?: (state: T) => void
   onSubscribe?: (state: T) => void
