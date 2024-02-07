@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { shallow } from '../vanilla/shallow.ts'
 import {
   InitStoreOptions,
@@ -25,39 +25,32 @@ export type UseStore<T> = {
 export const createStore = <T extends Record<string, any>>(
   initializer: StoreInitializer<T>,
   options: InitStoreOptions<T> = {},
-) => {
+): UseStore<T> => {
   const store = initStore(initializer, options)
 
   const useStore = <U = T>(selector: (state: T) => U = identity as (state: T) => U) => {
-    const refSelector = useRef(selector)
-    const refInitialState = useRef<U>()
-    useState(() => {
-      // Prevent re-compute selector(store.get())
-      refInitialState.current = selector(store.get())
-    })
-
-    const [state, setState] = useState(refInitialState.current)
+    const [, forceUpdate] = useState({})
 
     useEffect(() => {
-      const curr = refSelector.current(store.get())
-      if (!shallow(curr, refInitialState.current)) setState(curr)
       return store.subscribe((nextState, prevState) => {
-        const prev = refSelector.current(prevState)
-        const next = refSelector.current(nextState)
-        !shallow(prev, next) && setState(next)
+        const prev = selector(prevState)
+        const next = selector(nextState)
+        !shallow(prev, next) && forceUpdate({})
       })
     }, [])
 
-    return state
+    return selector(store.get())
   }
 
   const use = {
     setInitialValue: (value: SetState<T>) => {
       // eslint-disable-next-line react-hooks/rules-of-hooks
       useState(() => {
+        // Note: Put `store.set(value)` inside of useState to ensure it is only invoked once.
         if (store.getSubscribers().size > 0) {
-          return console.warn(
-            'Cannot perform setInitialValues because the store already have subscriber',
+          console.warn(
+            'The store already have subscriber.',
+            'Consider calling setInitialValue on higher component, before any component subscribed.',
           )
         }
         store.set(value)
