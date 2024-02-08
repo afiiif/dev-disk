@@ -15,7 +15,10 @@ export type StoreApi<T extends Record<string, any>> = {
   getInitial: () => T
 }
 
-export type StoreInitializer<T extends Record<string, any>> = T | ((store: StoreApi<T>) => T)
+export type StoreInitializer<
+  T extends Record<string, any>,
+  TProps extends Record<string, any> = Record<string, never>,
+> = T | ((store: StoreApi<T> & TProps) => T)
 
 export type InitStoreOptions<T extends Record<string, any>> = {
   intercept?: (nextState: T, prevState: T) => void | Maybe<Partial<T>>
@@ -28,10 +31,13 @@ export type InitStoreOptions<T extends Record<string, any>> = {
 // ----------------------------------------
 // Source code
 
-export const initStore = <T extends Record<string, any>>(
-  initializer: StoreInitializer<T>,
+export const initStore = <
+  T extends Record<string, any>,
+  TProps extends Record<string, any> = Record<string, never>,
+>(
+  initializer: StoreInitializer<T, TProps>,
   options: InitStoreOptions<T> = {},
-): StoreApi<T> => {
+): StoreApi<T> & TProps => {
   const {
     intercept,
     onFirstSubscribe = noop,
@@ -65,7 +71,7 @@ export const initStore = <T extends Record<string, any>>(
     }
   }
 
-  const store = { get, set, subscribe, getSubscribers, getInitial }
+  const store = { get, set, subscribe, getSubscribers, getInitial } as StoreApi<T> & TProps
   const initialState: T = getValue(initializer, store)
   state = initialState
   return store
