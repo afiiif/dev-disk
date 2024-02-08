@@ -35,3 +35,5 @@ export const createError = (message: string, props: Record<string, any>) => {
   const error = Object.assign(new Error(message), props)
   return error
 }
+
+export const hashStoreKey = (obj?: any) => JSON.stringify(obj, Object.keys(obj).sort())

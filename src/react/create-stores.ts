@@ -1,20 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { shallow } from '../vanilla/shallow.ts'
-import { InitStoreOptions, SetState, StoreApi, initStore } from '../vanilla/store.ts'
-import { Maybe, getValue, identity, noop } from '../vanilla/utils.ts'
+import {
+  InitStoreOptions,
+  SetState,
+  StoreApi,
+  StoreInitializer,
+  initStore,
+} from '../vanilla/store.ts'
+import { Maybe, getValue, hashStoreKey, identity, noop } from '../vanilla/utils.ts'
 
 // ----------------------------------------
 // Type definitions
 
-export type UseStores<TKey extends Record<string, any>, T extends Record<string, any>> = {
+export type UseStores<
+  TKey extends Record<string, any>,
+  T extends Record<string, any>,
+  TProps extends Record<string, any> = Record<string, never>,
+> = {
   <U = T>(...args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]): U
-  getStore: (key?: Maybe<TKey>) => StoreApi<T>
+  stores: Map<string, StoreApi<T> & { key: TKey; keyHash: string } & TProps>
+  getStore: (key?: Maybe<TKey>) => StoreApi<T> & { key: TKey; keyHash: string } & TProps
   useInitialValue: (key: Maybe<TKey>, value: SetState<T>) => void
 }
-
-export type StoresInitializer<TKey extends Record<string, any>, T extends Record<string, any>> =
-  | T
-  | ((store: StoreApi<T> & { key: TKey; keyHash: string }) => T)
 
 export type CreateStoresOptions<
   TKey extends Record<string, any>,
@@ -22,37 +29,39 @@ export type CreateStoresOptions<
 > = InitStoreOptions<T> & {
   hashKeyFn?: (obj: TKey) => string
   onBeforeChangeKey?: (nextKey: TKey, prevKey: TKey) => void
-  onStoreInitialized?: (key: TKey, keyHash: string) => void
 }
 
 // ----------------------------------------
 // Source code
 
-export const hashStoreKey = (obj?: any) => JSON.stringify(obj, Object.keys(obj).sort())
-
-export const createStores = <TKey extends Record<string, any>, T extends Record<string, any>>(
-  initializer: StoresInitializer<TKey, T>,
+export const createStores = <
+  TKey extends Record<string, any>,
+  T extends Record<string, any>,
+  TProps extends Record<string, any> = Record<string, never>,
+>(
+  initializer: StoreInitializer<T, { key: TKey; keyHash: string } & TProps>,
   options: CreateStoresOptions<TKey, T> = {},
-): UseStores<TKey, T> => {
+): UseStores<TKey, T, TProps> => {
   // prettier-ignore
   const {
     hashKeyFn = hashStoreKey,
     onBeforeChangeKey = noop,
-    onStoreInitialized = noop,
   } = options
 
   const defaultKey = {} as TKey
 
-  const stores = new Map<string, StoreApi<T>>()
+  const stores = new Map<string, StoreApi<T> & { key: TKey; keyHash: string } & TProps>()
+
   const getStore = (_key?: Maybe<TKey>) => {
     const key = _key || defaultKey
     const keyHash = hashKeyFn(key)
     if (!stores.has(keyHash)) {
-      stores.set(
-        keyHash,
-        initStore((store) => getValue(initializer, { key, keyHash, ...store }), options),
-      )
-      onStoreInitialized(key, keyHash)
+      const store = initStore<T, { key: TKey; keyHash: string } & TProps>((storeApi) => {
+        storeApi.key = key
+        storeApi.keyHash = keyHash
+        return getValue(initializer, storeApi)
+      }, options)
+      stores.set(keyHash, store)
     }
     return stores.get(keyHash)!
   }
@@ -87,7 +96,7 @@ export const createStores = <TKey extends Record<string, any>, T extends Record<
     return selector(store.get())
   }
 
-  const useInitialValue: UseStores<TKey, T>['useInitialValue'] = (key, value) => {
+  const useInitialValue = (key: Maybe<TKey>, value: SetState<T>) => {
     useState(() => {
       // Note: Put `store.set(value)` inside of useState to ensure it is only invoked once.
       const store = getStore(key)
@@ -102,6 +111,7 @@ export const createStores = <TKey extends Record<string, any>, T extends Record<
   }
 
   return Object.assign(useStores, {
+    stores,
     getStore,
     useInitialValue,
   })
