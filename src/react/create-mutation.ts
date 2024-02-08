@@ -9,11 +9,11 @@ export type MutationState<TResponse = any, TVar = undefined, TError = unknown> =
   isWaiting: boolean
   isSuccess: boolean
   isError: boolean
-  response: TResponse | undefined
-  responseUpdatedAt: number | undefined
-  variables: TVar | undefined
-  error: TError | undefined
-  errorUpdatedAt: number | undefined
+  response?: TResponse | undefined
+  responseUpdatedAt?: number | undefined
+  variables?: TVar | undefined
+  error?: TError | undefined
+  errorUpdatedAt?: number | undefined
 }
 
 export type MutateFn<TResponse = any, TVar = undefined, TError = unknown> = TVar extends undefined
@@ -106,11 +106,11 @@ export const createMutation = <TResponse = any, TVar = undefined, TError = unkno
       isWaiting: false,
       isSuccess: false,
       isError: false,
-      response: undefined,
-      responseUpdatedAt: undefined,
-      variables: undefined,
-      error: undefined,
-      errorUpdatedAt: undefined,
+      // response: undefined,
+      // responseUpdatedAt: undefined,
+      // variables: undefined,
+      // error: undefined,
+      // errorUpdatedAt: undefined,
     }
   }, createStoreOptions)
 }
