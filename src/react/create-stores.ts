@@ -13,8 +13,8 @@ import { Maybe, getValue, hashStoreKey, identity, noop } from '../vanilla/utils.
 // Type definitions
 
 export type UseStores<
-  TKey extends Record<string, any>,
   T extends Record<string, any>,
+  TKey extends Record<string, any>,
   TProps extends Record<string, any> = Record<string, never>,
 > = {
   <U = T>(...args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]): U
@@ -24,8 +24,8 @@ export type UseStores<
 }
 
 export type CreateStoresOptions<
-  TKey extends Record<string, any>,
   T extends Record<string, any>,
+  TKey extends Record<string, any>,
 > = InitStoreOptions<T> & {
   hashKeyFn?: (obj: TKey) => string
   onBeforeChangeKey?: (nextKey: TKey, prevKey: TKey) => void
@@ -35,13 +35,13 @@ export type CreateStoresOptions<
 // Source code
 
 export const createStores = <
-  TKey extends Record<string, any>,
   T extends Record<string, any>,
+  TKey extends Record<string, any>,
   TProps extends Record<string, any> = Record<string, never>,
 >(
   initializer: StoreInitializer<T, { key: TKey; keyHash: string } & TProps>,
-  options: CreateStoresOptions<TKey, T> = {},
-): UseStores<TKey, T, TProps> => {
+  options: CreateStoresOptions<T, TKey> = {},
+): UseStores<T, TKey, TProps> => {
   // prettier-ignore
   const {
     hashKeyFn = hashStoreKey,
