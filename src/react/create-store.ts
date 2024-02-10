@@ -18,7 +18,6 @@ export type UseStore<
 > = StoreApi<T> &
   TProps & {
     <U = T>(selector?: (state: T) => U): U
-    useInitialValue: (value: SetState<T>) => void
   }
 
 // ----------------------------------------
@@ -31,34 +30,37 @@ export const createStore = <
   initializer: StoreInitializer<T, TProps>,
   options: InitStoreOptions<T> = {},
 ): UseStore<T, TProps> => {
-  const store = initStore(initializer, options)
+  const storeApi = initStore(initializer, options)
 
   const useStore = <U = T>(selector: (state: T) => U = identity as (state: T) => U) => {
     const [, forceUpdate] = useState({})
 
     useEffect(() => {
-      return store.subscribe((nextState, prevState) => {
+      return storeApi.subscribe((nextState, prevState) => {
         const prev = selector(prevState)
         const next = selector(nextState)
         !shallow(prev, next) && forceUpdate({})
       })
     }, [])
 
-    return selector(store.get())
+    return selector(storeApi.get())
   }
 
-  const useInitialValue = (value: SetState<T>) => {
-    useState(() => {
-      // Note: Put `store.set(value)` inside of useState to ensure it is only invoked once.
-      if (store.getSubscribers().size > 0) {
-        console.warn(
-          'The store already have subscriber.',
-          'Consider calling setInitialValue on higher component, before any component subscribed.',
-        )
-      }
-      store.set(value)
-    })
-  }
+  return Object.assign(useStore, storeApi)
+}
 
-  return Object.assign(useStore, { ...store, useInitialValue })
+export const useInitialValue = <T extends Record<string, any>>(
+  storeApi: StoreApi<T>,
+  value: SetState<T>,
+) => {
+  useState(() => {
+    // Note: Put `storeApi.set(value)` inside of useState to ensure it is only invoked once.
+    if (storeApi.getSubscribers().size > 0) {
+      console.warn(
+        'The store already have subscriber.',
+        'Consider calling setInitialValue on higher component, before any component subscribed.',
+      )
+    }
+    storeApi.set(value)
+  })
 }

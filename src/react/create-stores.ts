@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { shallow } from '../vanilla/shallow.ts'
-import { SetState } from '../vanilla/store.ts'
 import { InitStoresOptions, StoresApi, StoresInitializer, initStores } from '../vanilla/stores.ts'
 import { Maybe, hashStoreKey, identity, noop } from '../vanilla/utils.ts'
 
@@ -13,7 +12,6 @@ export type UseStores<
   TProps extends Record<string, any> = Record<string, never>,
 > = StoresApi<T, TKey, TProps> & {
   <U = T>(...args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]): U
-  useInitialValue: (key: Maybe<TKey>, value: SetState<T>) => void
 }
 
 export type CreateStoresOptions<
@@ -42,7 +40,7 @@ export const createStores = <
 
   const defaultKey = {} as TKey
 
-  const { stores, getStore } = initStores(initializer, options)
+  const storesApi = initStores(initializer, options)
 
   const useStores = <U = T>(
     ..._args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]
@@ -56,7 +54,7 @@ export const createStores = <
     const prevKey = useRef(key)
     const prevKeyHash = useRef(keyHash)
 
-    const store = useMemo(() => getStore(key), [keyHash])
+    const store = useMemo(() => storesApi.getStore(key), [keyHash])
     const [, forceUpdate] = useState({})
 
     useEffect(() => {
@@ -74,23 +72,5 @@ export const createStores = <
     return selector(store.get())
   }
 
-  const useInitialValue = (key: Maybe<TKey>, value: SetState<T>) => {
-    useState(() => {
-      // Note: Put `store.set(value)` inside of useState to ensure it is only invoked once.
-      const store = getStore(key)
-      if (store.getSubscribers().size > 0) {
-        console.warn(
-          'The store already have subscriber.',
-          'Consider calling setInitialValue on higher component, before any component subscribed.',
-        )
-      }
-      store.set(value)
-    })
-  }
-
-  return Object.assign(useStores, {
-    stores,
-    getStore,
-    useInitialValue,
-  })
+  return Object.assign(useStores, storesApi)
 }
