@@ -53,7 +53,7 @@ export const initStore = <
   const subscribers = new Set<Subscriber<T>>()
   const getSubscribers = () => subscribers
 
-  const set = (value: SetState<T>, silent = false) => {
+  const set = (value: SetState<T>, silent?: boolean) => {
     const prevState = state
     state = { ...state, ...getValue(value, state) }
     if (intercept) state = { ...state, ...intercept(state, prevState) }
