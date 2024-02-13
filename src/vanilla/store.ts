@@ -8,11 +8,11 @@ export type SetState<T> = Partial<T> | ((state: T) => Partial<T>)
 export type Subscriber<T> = (state: T, prevState: T) => void
 
 export type StoreApi<T extends Record<string, any>> = {
-  get: () => T
   set: (value: SetState<T>, silent?: boolean) => void
+  get: () => T
+  getInitial: () => T
   subscribe: (subscriber: Subscriber<T>) => () => void
   getSubscribers: () => Set<Subscriber<T>>
-  getInitial: () => T
 }
 
 export type StoreInitializer<
@@ -71,7 +71,7 @@ export const initStore = <
     }
   }
 
-  const store = { get, set, subscribe, getSubscribers, getInitial } as StoreApi<T> & TProps
+  const store = { set, get, getInitial, subscribe, getSubscribers } as StoreApi<T> & TProps
   const initialState: T = getValue(initializer, store)
   state = initialState
   return store
