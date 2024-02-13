@@ -73,8 +73,8 @@ export const initMutation = <TResponse = any, TVar = undefined, TError = unknown
               error: undefined,
               errorUpdatedAt: undefined,
             })
-            onSuccess(response, variables, stateBeforeMutate)
             resolve({ response, variables })
+            onSuccess(response, variables, stateBeforeMutate)
           })
           .catch((error: TError) => {
             set({
@@ -85,9 +85,9 @@ export const initMutation = <TResponse = any, TVar = undefined, TError = unknown
               error,
               errorUpdatedAt: Date.now(),
             })
+            resolve({ error, variables })
             if (onError) onError(error, variables, stateBeforeMutate)
             else console.error(error, variables, get())
-            resolve({ error, variables })
           })
           .finally(() => {
             onSettled(variables, stateBeforeMutate)
