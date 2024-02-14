@@ -4,43 +4,49 @@ import { noop } from './utils.ts'
 // ----------------------------------------
 // Type definitions
 
-export type MutationState<TResponse = any, TVar = undefined, TError = unknown> = {
+export type Mutation = {
+  variables?: any
+  response?: any
+  error?: any
+}
+
+export type MutationState<T extends Mutation> = {
   isWaiting: boolean
   isSuccess: boolean
   isError: boolean
-  response: TResponse | undefined
+  response: T['response'] | undefined
   responseUpdatedAt: number | undefined
-  variables: TVar | undefined
-  error: TError | undefined
+  variables: T['variables'] | undefined
+  error: T['error'] | undefined
   errorUpdatedAt: number | undefined
 }
 
-export type MutateFn<TResponse = any, TVar = undefined, TError = unknown> = TVar extends undefined
-  ? () => Promise<{ response?: TResponse; error?: TError; variables?: TVar }>
-  : (variables: TVar) => Promise<{ response?: TResponse; error?: TError; variables?: TVar }>
+export type MutateFn<T extends Mutation> = T['variables'] extends undefined
+  ? () => Promise<{ response?: T['response']; error?: T['error']; variables?: T['variables'] }>
+  : (
+      variables: T['variables'],
+    ) => Promise<{ response?: T['response']; error?: T['error']; variables?: T['variables'] }>
 
-export type InitMutation<TResponse = any, TVar = undefined, TError = unknown> = {
-  mutationFn: (variables: TVar, state: MutationState<TResponse, TVar, TError>) => Promise<TResponse>
-  onMutate?: (variables: TVar, stateBeforeMutate: MutationState<TResponse, TVar, TError>) => void
+export type InitMutationOptions<T extends Mutation> = {
+  mutationFn: (variables: T['variables'], state: MutationState<T>) => Promise<T['response']>
+  onMutate?: (variables: T['variables'], stateBeforeMutate: MutationState<T>) => void
   onSuccess?: (
-    response: TResponse,
-    variables: TVar,
-    stateBeforeMutate: MutationState<TResponse, TVar, TError>,
+    response: T['response'],
+    variables: T['variables'],
+    stateBeforeMutate: MutationState<T>,
   ) => void
   onError?: (
-    error: TError,
-    variables: TVar,
-    stateBeforeMutate: MutationState<TResponse, TVar, TError>,
+    error: T['error'],
+    variables: T['variables'],
+    stateBeforeMutate: MutationState<T>,
   ) => void
-  onSettled?: (variables: TVar, stateBeforeMutate: MutationState<TResponse, TVar, TError>) => void
+  onSettled?: (variables: T['variables'], stateBeforeMutate: MutationState<T>) => void
 }
 
 // ----------------------------------------
 // Source code
 
-export const initMutation = <TResponse = any, TVar = undefined, TError = unknown>(
-  options: InitMutation<TResponse, TVar, TError>,
-) => {
+export const initMutation = <T extends Mutation>(options: InitMutationOptions<T>) => {
   // prettier-ignore
   const {
     mutationFn,
@@ -51,8 +57,8 @@ export const initMutation = <TResponse = any, TVar = undefined, TError = unknown
   } = options
 
   const initializer: StoreInitializer<
-    MutationState<TResponse, TVar, TError>,
-    { mutate: MutateFn<TResponse, TVar, TError>; reset: () => void }
+    MutationState<T>,
+    { mutate: MutateFn<T>; reset: () => void }
   > = (storeApi) => {
     const { set, get, getInitial } = storeApi
 
@@ -76,7 +82,7 @@ export const initMutation = <TResponse = any, TVar = undefined, TError = unknown
             resolve({ response, variables })
             onSuccess(response, variables, stateBeforeMutate)
           })
-          .catch((error: TError) => {
+          .catch((error: T['error']) => {
             set({
               isWaiting: false,
               isSuccess: false,
@@ -93,7 +99,7 @@ export const initMutation = <TResponse = any, TVar = undefined, TError = unknown
             onSettled(variables, stateBeforeMutate)
           })
       })
-    }) as MutateFn<TResponse, TVar, TError>
+    }) as MutateFn<T>
 
     storeApi.reset = () => set(getInitial())
 
