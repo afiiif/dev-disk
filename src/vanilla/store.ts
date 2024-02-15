@@ -8,7 +8,7 @@ export type SetState<T> = Partial<T> | ((state: T) => Partial<T>)
 export type Subscriber<T> = (state: T, prevState: T) => void
 
 export type StoreApi<T extends Record<string, any>> = {
-  set: (value: SetState<T>, silent?: boolean) => void
+  set: (value: SetState<T>) => void
   get: () => T
   getInitial: () => T
   subscribe: (subscriber: Subscriber<T>) => () => void
@@ -53,11 +53,11 @@ export const initStore = <
   const subscribers = new Set<Subscriber<T>>()
   const getSubscribers = () => subscribers
 
-  const set = (value: SetState<T>, silent?: boolean) => {
+  const set = (value: SetState<T>) => {
     const prevState = state
     state = { ...state, ...getValue(value, state) }
     if (intercept) state = { ...state, ...intercept(state, prevState) }
-    if (!silent) subscribers.forEach((subscriber) => subscriber(state, prevState))
+    subscribers.forEach((subscriber) => subscriber(state, prevState))
   }
 
   const subscribe = (subscriber: Subscriber<T>) => {
