@@ -270,6 +270,10 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
         return Promise.resolve(state)
       }
       if (state.isLoading) return Promise.resolve(fetch())
+      if (state.isRefetching && state.isGoingToRetry) {
+        // Wait the retry process, and trigger fetchNextPage after that
+        return storesApi.internal.promise.fetch!.then(() => storesApi.fetchNextPage())
+      }
       if (!getValue(enabled, key) || !state.hasNextPage) return Promise.resolve(state)
       if (state.isWaitingNextPage) return storesApi.internal.promise.fetchNextPage!
 
@@ -293,8 +297,14 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
               pageParams: stateBeforeCallQuery.pageParams.concat(newPageParam),
               hasNextPage: hasValue(newPageParam),
             })
-            onSuccess(response, stateBeforeCallQuery)
             resolve(get())
+            onSuccess(response, stateBeforeCallQuery)
+            const refetchIntervalValue = isClient && getValue(refetchInterval, get())
+            if (refetchIntervalValue) {
+              storesApi.internal.timeout.refetchInterval = window.setTimeout(() => {
+                fetch()
+              }, refetchIntervalValue)
+            }
           })
           .catch((error: T['error']) => {
             const prevState = get()
@@ -319,6 +329,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
 
       storesApi.internal.ignoreResponse.fetch = true // Cancel refetching process
       clearTimeout(storesApi.internal.timeout.retryNextPage) // Cancel retry next page
+      clearTimeout(storesApi.internal.timeout.refetchInterval) // Cancel refetch interval
       return storesApi.internal.promise.fetchNextPage
     }
 
