@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { shallow } from '../vanilla/shallow.ts'
+import { useState } from 'react'
 import {
   InitStoreOptions,
   SetState,
@@ -7,7 +6,7 @@ import {
   StoreInitializer,
   initStore,
 } from '../vanilla/store.ts'
-import { identity } from '../vanilla/utils.ts'
+import { useSyncStoreSlice } from './use-sync-store-slice.ts'
 
 // ----------------------------------------
 // Type definitions
@@ -32,18 +31,8 @@ export const createStore = <
 ): UseStore<T, TProps> => {
   const storeApi = initStore(initializer, options)
 
-  const useStore = <U = T>(selector: (state: T) => U = identity as (state: T) => U) => {
-    const [, forceUpdate] = useState({})
-
-    useEffect(() => {
-      return storeApi.subscribe((nextState, prevState) => {
-        const prev = selector(prevState)
-        const next = selector(nextState)
-        !shallow(prev, next) && forceUpdate({})
-      })
-    }, [])
-
-    return selector(storeApi.get())
+  const useStore = <U = T>(selector?: (state: T) => U) => {
+    return useSyncStoreSlice(storeApi, selector)
   }
 
   return Object.assign(useStore, storeApi)

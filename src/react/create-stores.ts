@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { shallow } from '../vanilla/shallow.ts'
+import { useEffect, useMemo, useRef } from 'react'
 import { InitStoresOptions, StoresApi, StoresInitializer, initStores } from '../vanilla/stores.ts'
 import { Maybe, hashStoreKey, identity, noop } from '../vanilla/utils.ts'
+import { useSyncStoreSlice } from './use-sync-store-slice.ts'
 
 // ----------------------------------------
 // Type definitions
@@ -54,22 +54,16 @@ export const createStores = <
     const prevKey = useRef(key)
     const prevKeyHash = useRef(keyHash)
 
-    const store = useMemo(() => storesApi.getStore(key), [keyHash])
-    const [, forceUpdate] = useState({})
-
     useEffect(() => {
       prevKey.current = key
       prevKeyHash.current = keyHash
-      return store.subscribe((nextState, prevState) => {
-        const prev = selector(prevState)
-        const next = selector(nextState)
-        !shallow(prev, next) && forceUpdate({})
-      })
     }, [keyHash])
 
     if (keyHash !== prevKeyHash.current) onBeforeChangeKey(key, prevKey.current)
 
-    return selector(store.get())
+    const store = useMemo(() => storesApi.getStore(key), [keyHash])
+
+    return useSyncStoreSlice(store, selector)
   }
 
   return Object.assign(useStores, storesApi)
