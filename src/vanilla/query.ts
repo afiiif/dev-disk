@@ -13,7 +13,7 @@ export type Query = {
 }
 
 export type QueryState<T extends Query> = QueryStatus<T> & {
-  key: T['key']
+  key: T['key'] extends Record<string, any> ? T['key'] : Record<string, never>
   isWaiting: boolean
   isRefetching: boolean
   isRefetchError: boolean
@@ -125,6 +125,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
       retry?: number
       retryNextPage?: number
       refetchInterval?: number
+      garbageCollection?: number
     }
     promise: {
       fetch?: Promise<QueryState<T>>
@@ -161,10 +162,10 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
     QueryState<T>,
     T['key'] extends Record<string, any> ? T['key'] : Record<string, never>,
     { internal: Internal; fetch: Fetch; fetchNextPage: FetchNextPage; reset: () => void }
-  > = (storesApi) => {
-    const { set, get, getInitial, key } = storesApi
+  > = (store) => {
+    const { set, get, getInitial, key } = store
 
-    storesApi.internal = {
+    store.internal = {
       timeout: {},
       promise: {},
       ignoreResponse: { fetch: true, fetchNextPage: true },
@@ -182,15 +183,15 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
 
       // 🔴
       if (!getValue(enabled, key)) return Promise.resolve(state)
-      if (state.isWaiting) return storesApi.internal.promise.fetch!
+      if (state.isWaiting) return store.internal.promise.fetch!
 
       // 🟢
-      storesApi.internal.promise.fetch = new Promise<QueryState<T>>((resolve) => {
+      store.internal.promise.fetch = new Promise<QueryState<T>>((resolve) => {
         let __newData: T['data']
         const __newPageParams: Maybe<T['pageParam']>[] = [state.pageParams[0]]
 
         const callQuery = (innerResolve = resolve) => {
-          storesApi.internal.ignoreResponse.fetch = false
+          store.internal.ignoreResponse.fetch = false
           set({ isGoingToRetry: false, isWaiting: true, isRefetching: !state.isLoading })
 
           const stateBeforeCallQuery = {
@@ -199,7 +200,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
           }
           queryFn(key, stateBeforeCallQuery)
             .then((response) => {
-              if (storesApi.internal.ignoreResponse.fetch) {
+              if (store.internal.ignoreResponse.fetch) {
                 set({ isWaiting: false, isRefetching: false })
                 return innerResolve(get())
               }
@@ -214,9 +215,10 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
               onSuccess(response, stateBeforeCallQuery)
               const refetchIntervalValue = isClient && getValue(refetchInterval, get())
               if (refetchIntervalValue) {
-                storesApi.internal.timeout.refetchInterval = window.setTimeout(() => {
-                  fetch()
-                }, refetchIntervalValue)
+                store.internal.timeout.refetchInterval = window.setTimeout(
+                  fetch,
+                  refetchIntervalValue,
+                )
               }
             })
             .catch((error: T['error']) => {
@@ -225,7 +227,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
               if (shouldRetry) {
                 set({ isWaiting: false, isGoingToRetry: true })
                 if (isClient) {
-                  storesApi.internal.timeout.retry = window.setTimeout(() => {
+                  store.internal.timeout.retry = window.setTimeout(() => {
                     set({ retryCount: prevState.retryCount + 1 })
                     callQuery(innerResolve)
                   }, delay)
@@ -247,12 +249,12 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
         callQuery()
       })
 
-      clearTimeout(storesApi.internal.timeout.refetchInterval) // Cancel refetch interval
-      clearTimeout(storesApi.internal.timeout.retry) // Cancel retry
-      return storesApi.internal.promise.fetch
+      clearTimeout(store.internal.timeout.refetchInterval) // Cancel refetch interval
+      clearTimeout(store.internal.timeout.retry) // Cancel retry
+      return store.internal.promise.fetch
     }
 
-    storesApi.fetch = Object.assign(fetch, {
+    store.fetch = Object.assign(fetch, {
       cacheFirst: () => {
         const state = get()
         const isStale = !state.responseUpdatedAt || Date.now() > state.responseUpdatedAt + staleTime
@@ -261,7 +263,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
       },
     })
 
-    storesApi.fetchNextPage = (): Promise<QueryState<T>> => {
+    store.fetchNextPage = (): Promise<QueryState<T>> => {
       const state = get()
 
       // 🔴
@@ -272,18 +274,18 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
       if (state.isLoading) return Promise.resolve(fetch())
       if (state.isRefetching && state.isGoingToRetry) {
         // Wait the retry process, and trigger fetchNextPage after that
-        return storesApi.internal.promise.fetch!.then(() => storesApi.fetchNextPage())
+        return store.internal.promise.fetch!.then(() => store.fetchNextPage())
       }
       if (!getValue(enabled, key) || !state.hasNextPage) return Promise.resolve(state)
-      if (state.isWaitingNextPage) return storesApi.internal.promise.fetchNextPage!
+      if (state.isWaitingNextPage) return store.internal.promise.fetchNextPage!
 
       // 🟢
-      storesApi.internal.promise.fetchNextPage = new Promise<QueryState<T>>((resolve) => {
+      store.internal.promise.fetchNextPage = new Promise<QueryState<T>>((resolve) => {
         set({ isWaitingNextPage: true, isGoingToRetryNextPage: false })
         const stateBeforeCallQuery = get()
         queryFn(key, stateBeforeCallQuery)
           .then((response) => {
-            if (storesApi.internal.ignoreResponse.fetchNextPage) {
+            if (store.internal.ignoreResponse.fetchNextPage) {
               set({ isWaitingNextPage: false })
               return resolve(get())
             }
@@ -301,9 +303,10 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
             onSuccess(response, stateBeforeCallQuery)
             const refetchIntervalValue = isClient && getValue(refetchInterval, get())
             if (refetchIntervalValue) {
-              storesApi.internal.timeout.refetchInterval = window.setTimeout(() => {
-                fetch()
-              }, refetchIntervalValue)
+              store.internal.timeout.refetchInterval = window.setTimeout(
+                fetch,
+                refetchIntervalValue,
+              )
             }
           })
           .catch((error: T['error']) => {
@@ -311,9 +314,9 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
             const { shouldRetry, delay } = getRetryProps(error, prevState.retryNextPageCount)
             if (shouldRetry) {
               set({ isWaitingNextPage: false, isGoingToRetryNextPage: true })
-              storesApi.internal.timeout.retryNextPage = window.setTimeout(() => {
+              store.internal.timeout.retryNextPage = window.setTimeout(() => {
                 set({ retryNextPageCount: prevState.retryNextPageCount + 1 })
-                resolve(storesApi.fetchNextPage())
+                resolve(store.fetchNextPage())
               }, delay)
               return
             }
@@ -327,18 +330,18 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
           })
       })
 
-      storesApi.internal.ignoreResponse.fetch = true // Cancel refetching process
-      clearTimeout(storesApi.internal.timeout.retryNextPage) // Cancel retry next page
-      clearTimeout(storesApi.internal.timeout.refetchInterval) // Cancel refetch interval
-      return storesApi.internal.promise.fetchNextPage
+      store.internal.ignoreResponse.fetch = true // Cancel refetching process
+      clearTimeout(store.internal.timeout.retryNextPage) // Cancel retry next page
+      clearTimeout(store.internal.timeout.refetchInterval) // Cancel refetch interval
+      return store.internal.promise.fetchNextPage
     }
 
-    storesApi.reset = () => {
-      clearTimeout(storesApi.internal.timeout.retry)
-      clearTimeout(storesApi.internal.timeout.retryNextPage)
-      clearTimeout(storesApi.internal.timeout.refetchInterval)
-      storesApi.internal.ignoreResponse.fetch = true
-      storesApi.internal.ignoreResponse.fetchNextPage = true
+    store.reset = () => {
+      clearTimeout(store.internal.timeout.retry)
+      clearTimeout(store.internal.timeout.retryNextPage)
+      clearTimeout(store.internal.timeout.refetchInterval)
+      store.internal.ignoreResponse.fetch = true
+      store.internal.ignoreResponse.fetchNextPage = true
       set(getInitial())
     }
 
