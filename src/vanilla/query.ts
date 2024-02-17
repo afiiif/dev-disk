@@ -63,6 +63,25 @@ type Pagination<T> = {
   isGoingToRetryNextPage: boolean
 }
 
+export type QueryStoreApi<T extends Query> = {
+  internal: {
+    timeout: {
+      retry?: number
+      retryNextPage?: number
+      refetchInterval?: number
+      garbageCollection?: number
+    }
+    promise: { fetch?: Promise<QueryState<T>>; fetchNextPage?: Promise<QueryState<T>> }
+    ignoreResponse: { fetch: boolean; fetchNextPage: boolean }
+  }
+  fetch: {
+    (): Promise<QueryState<T>>
+    cacheFirst: () => Promise<QueryState<T>>
+  }
+  fetchNextPage: () => Promise<QueryState<T>>
+  reset: () => void
+}
+
 export type InitQueryOptions<T extends Query> = {
   queryFn: (key: T['key'], state: QueryState<T>) => Promise<T['response']>
   staleTime?: number
@@ -120,30 +139,6 @@ const getErrorState = <E, P>(error: E, pageParams: P[]) => {
 }
 
 export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
-  type Internal = {
-    timeout: {
-      retry?: number
-      retryNextPage?: number
-      refetchInterval?: number
-      garbageCollection?: number
-    }
-    promise: {
-      fetch?: Promise<QueryState<T>>
-      fetchNextPage?: Promise<QueryState<T>>
-    }
-    ignoreResponse: {
-      fetch: boolean
-      fetchNextPage: boolean
-    }
-  }
-
-  type Fetch = {
-    (): Promise<QueryState<T>>
-    cacheFirst: () => Promise<QueryState<T>>
-  }
-
-  type FetchNextPage = any
-
   const {
     queryFn,
     staleTime = 3000, // 3 seconds
@@ -161,7 +156,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
   const initializer: StoresInitializer<
     QueryState<T>,
     T['key'] extends Record<string, any> ? T['key'] : Record<string, never>,
-    { internal: Internal; fetch: Fetch; fetchNextPage: FetchNextPage; reset: () => void }
+    QueryStoreApi<T>
   > = (store) => {
     const { set, get, getInitial, key } = store
 
