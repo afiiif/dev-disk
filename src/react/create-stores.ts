@@ -1,7 +1,13 @@
-import { useEffect, useMemo, useRef } from 'react'
+// import { useDebugValue, useSyncExternalStore } from 'react'
+// That doesn't work in ESM, because React libs are CJS only.
+// See: https://github.com/pmndrs/valtio/issues/452
+// The following is a workaround until ESM is supported.
+import ReactExports from 'react'
 import { InitStoresOptions, StoresApi, StoresInitializer, initStores } from '../vanilla/stores.ts'
 import { Maybe, hashStoreKey, identity, noop } from '../vanilla/utils.ts'
 import { useSyncStoreSlice } from './use-sync-store-slice.ts'
+
+const { useEffect, useMemo, useRef } = ReactExports
 
 // ----------------------------------------
 // Type definitions
