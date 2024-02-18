@@ -7,7 +7,7 @@ import { shallow } from '../vanilla/shallow.ts'
 import { StoreApi } from '../vanilla/store.ts'
 import { identity } from '../vanilla/utils.ts'
 
-const { useDebugValue, useMemo, useRef, useSyncExternalStore } = ReactExports
+const { useCallback, useDebugValue, useMemo, useRef, useSyncExternalStore } = ReactExports
 
 const useMemoShallowSelector = <TState, TStateSlice>(
   getState: () => TState,
@@ -37,4 +37,50 @@ export const useSyncStoreSlice = <TState extends Record<string, any>, TStateSlic
   )
   useDebugValue(slice)
   return slice
+}
+
+export const useSyncStoresSlice = <TState extends Record<string, any>, TStateSlice>(
+  stores: StoreApi<TState>[],
+  selector: (state: TState) => TStateSlice = identity as (state: TState) => TStateSlice,
+) => {
+  const selectorRef = useRef(selector)
+  selectorRef.current = selector
+
+  const slices = useSyncExternalStore<TStateSlice[]>(
+    useCallback(
+      (onStoreChange) => {
+        const unsubscribeFns = stores.map((store) => store.subscribe(onStoreChange))
+        return () => {
+          unsubscribeFns.forEach((unsubscribe) => unsubscribe())
+        }
+      },
+      [stores],
+    ),
+    useMemo(() => {
+      let slices: TStateSlice[]
+      return () => {
+        const nextSlices = []
+        let isEqual = true
+        for (let i = 0; i < stores.length; i++) {
+          nextSlices[i] = selectorRef.current(stores[i].get())
+          if (!shallow(slices[i], nextSlices[i])) isEqual = false
+        }
+        return isEqual ? slices : nextSlices
+      }
+    }, [stores]),
+    useMemo(() => {
+      let slices: TStateSlice[]
+      return () => {
+        const nextSlices = []
+        let isEqual = true
+        for (let i = 0; i < stores.length; i++) {
+          nextSlices[i] = selectorRef.current(stores[i].getInitial())
+          if (!shallow(slices[i], nextSlices[i])) isEqual = false
+        }
+        return isEqual ? slices : nextSlices
+      }
+    }, [stores]),
+  )
+  useDebugValue(slices)
+  return slices
 }

@@ -11,7 +11,7 @@ import {
   initStores,
 } from '../vanilla/stores.ts'
 import { Maybe, hashStoreKey, identity, noop } from '../vanilla/utils.ts'
-import { useSyncStoreSlice } from './use-sync-store-slice.ts'
+import { useSyncStoreSlice, useSyncStoresSlice } from './use-sync-store-slice.ts'
 
 const { useEffect, useMemo, useRef } = ReactExports
 
@@ -26,6 +26,8 @@ export type UseStores<
   <U = T>(
     ...args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]
   ): [U, StoreApiWithKey<T, TKey, TProps>]
+} & {
+  useMultiple: <U = T>(keys: TKey[], selector?: ((state: T) => U) | undefined) => U[]
 }
 
 export type CreateStoresOptions<
@@ -77,9 +79,32 @@ export const createStores = <
 
     const store = useMemo(() => storesApi.getStore(key), [keyHash])
     const slice = useSyncStoreSlice(store, selector)
-
     return [slice, store]
   }
 
-  return Object.assign(useStores, storesApi)
+  const useMultiple = <U = T>(keys: TKey[], selector?: (state: T) => U) => {
+    const keyHashes = keys.map((key) => hashKeyFn(key))
+    const keyHashesJoined = keyHashes.join('_')
+
+    const prevKeys = useRef(keys)
+    const prevKeyHashes = useRef(keyHashes)
+    const prevKeyHashesJoined = useRef(keyHashesJoined)
+
+    useEffect(() => {
+      prevKeys.current = keys
+      prevKeyHashes.current = keyHashes
+      prevKeyHashesJoined.current = keyHashesJoined
+    }, [keyHashesJoined])
+
+    if (keyHashesJoined !== prevKeyHashesJoined.current) {
+      keyHashes.forEach((keyHash, i) => {
+        if (keyHash !== prevKeyHashes.current[i]) onBeforeChangeKey(keys[i], prevKeys.current[i])
+      })
+    }
+
+    const stores = useMemo(() => keys.map((key) => storesApi.getStore(key)), [keyHashesJoined])
+    return useSyncStoresSlice(stores, selector)
+  }
+
+  return Object.assign(useStores, { ...storesApi, useMultiple })
 }
