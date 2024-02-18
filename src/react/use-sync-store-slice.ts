@@ -3,9 +3,7 @@
 // See: https://github.com/pmndrs/valtio/issues/452
 // The following is a workaround until ESM is supported.
 import ReactExports from 'react'
-import { shallow } from '../vanilla/shallow.ts'
-import { StoreApi } from '../vanilla/store.ts'
-import { identity } from '../vanilla/utils.ts'
+import { StoreApi, identity, shallow } from 'dev-disk'
 
 const { useCallback, useDebugValue, useMemo, useRef, useSyncExternalStore } = ReactExports
 

@@ -1,5 +1,4 @@
-import { InitQueryOptions, Query, QueryState, initQuery } from '../vanilla/query.ts'
-import { getValue, isClient } from '../vanilla/utils.ts'
+import { InitQueryOptions, Query, QueryState, getValue, initQuery, isClient } from 'dev-disk'
 import { CreateStoresOptions, createStores } from './create-stores.ts'
 
 // ----------------------------------------

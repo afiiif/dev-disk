@@ -5,12 +5,15 @@
 import ReactExports from 'react'
 import {
   InitStoresOptions,
+  Maybe,
   StoreApiWithKey,
   StoresApi,
   StoresInitializer,
+  hashStoreKey,
+  identity,
   initStores,
-} from '../vanilla/stores.ts'
-import { Maybe, hashStoreKey, identity, noop } from '../vanilla/utils.ts'
+  noop,
+} from 'dev-disk'
 import { useSyncStoreSlice, useSyncStoresSlice } from './use-sync-store-slice.ts'
 
 const { useEffect, useMemo, useRef } = ReactExports

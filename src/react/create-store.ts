@@ -3,13 +3,7 @@
 // See: https://github.com/pmndrs/valtio/issues/452
 // The following is a workaround until ESM is supported.
 import ReactExports from 'react'
-import {
-  InitStoreOptions,
-  SetState,
-  StoreApi,
-  StoreInitializer,
-  initStore,
-} from '../vanilla/store.ts'
+import { InitStoreOptions, SetState, StoreApi, StoreInitializer, initStore } from 'dev-disk'
 import { useSyncStoreSlice } from './use-sync-store-slice.ts'
 
 const { useState } = ReactExports

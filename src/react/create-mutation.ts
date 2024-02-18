@@ -1,5 +1,10 @@
-import { InitMutationOptions, Mutation, MutationState, initMutation } from '../vanilla/mutation.ts'
-import { InitStoreOptions } from '../vanilla/store.ts'
+import {
+  InitMutationOptions,
+  InitStoreOptions,
+  Mutation,
+  MutationState,
+  initMutation,
+} from 'dev-disk'
 import { createStore } from './create-store.ts'
 
 // ----------------------------------------
