@@ -16,7 +16,7 @@ import {
 } from 'dev-disk'
 import { useSyncStoreSlice, useSyncStoresSlice } from './use-sync-store-slice.ts'
 
-const { useEffect, useMemo, useRef } = ReactExports
+const { useMemo, useRef } = ReactExports
 
 // ----------------------------------------
 // Type definitions
@@ -70,15 +70,9 @@ export const createStores = <
     const key = _key || defaultKey
     const keyHash = hashKeyFn(key)
 
-    const prevKey = useRef(key)
-    const prevKeyHash = useRef(keyHash)
-
-    useEffect(() => {
-      prevKey.current = key
-      prevKeyHash.current = keyHash
-    }, [keyHash])
-
-    if (keyHash !== prevKeyHash.current) onBeforeChangeKey(key, prevKey.current)
+    const prev = useRef({ key, keyHash })
+    if (keyHash !== prev.current.keyHash) onBeforeChangeKey(key, prev.current.key)
+    prev.current = { key, keyHash }
 
     const store = useMemo(() => storesApi.getStore(key), [keyHash])
     const slice = useSyncStoreSlice(store, selector)
@@ -89,21 +83,13 @@ export const createStores = <
     const keyHashes = keys.map((key) => hashKeyFn(key))
     const keyHashesJoined = keyHashes.join('_')
 
-    const prevKeys = useRef(keys)
-    const prevKeyHashes = useRef(keyHashes)
-    const prevKeyHashesJoined = useRef(keyHashesJoined)
-
-    useEffect(() => {
-      prevKeys.current = keys
-      prevKeyHashes.current = keyHashes
-      prevKeyHashesJoined.current = keyHashesJoined
-    }, [keyHashesJoined])
-
-    if (keyHashesJoined !== prevKeyHashesJoined.current) {
+    const prev = useRef({ keys, keyHashes, keyHashesJoined })
+    if (keyHashesJoined !== prev.current.keyHashesJoined) {
       keyHashes.forEach((keyHash, i) => {
-        if (keyHash !== prevKeyHashes.current[i]) onBeforeChangeKey(keys[i], prevKeys.current[i])
+        if (keyHash !== prev.current.keyHashes[i]) onBeforeChangeKey(keys[i], prev.current.keys[i])
       })
     }
+    prev.current = { keys, keyHashes, keyHashesJoined }
 
     const stores = useMemo(() => keys.map((key) => storesApi.getStore(key)), [keyHashesJoined])
     return useSyncStoresSlice(stores, selector)
