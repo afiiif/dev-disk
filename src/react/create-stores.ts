@@ -6,7 +6,6 @@ import ReactExports from 'react'
 import {
   InitStoresOptions,
   Maybe,
-  StoreApiWithKey,
   StoresApi,
   StoresInitializer,
   hashStoreKey,
@@ -26,9 +25,7 @@ export type UseStores<
   TKey extends Record<string, any>,
   TProps extends Record<string, any> = Record<string, never>,
 > = StoresApi<T, TKey, TProps> & {
-  <U = T>(
-    ...args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]
-  ): [U, StoreApiWithKey<T, TKey, TProps>]
+  <U = T>(...args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]): U
 } & {
   useMultiple: <U = T>(options: { keys: TKey[]; selector?: (state: T) => U }) => U[]
 }
@@ -63,7 +60,7 @@ export const createStores = <
 
   const useStores = <U = T>(
     ..._args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]
-  ): [U, StoreApiWithKey<T, TKey, TProps>] => {
+  ): U => {
     const args = typeof _args[0] === 'function' ? [defaultKey, _args[0]] : _args
     const [_key, selector = identity as (state: T) => U] = args as [Maybe<TKey>, (state: T) => U]
 
@@ -75,8 +72,7 @@ export const createStores = <
     prev.current = { key, keyHash }
 
     const store = useMemo(() => storesApi.getStore(key), [keyHash])
-    const slice = useSyncStoreSlice(store, selector)
-    return [slice, store]
+    return useSyncStoreSlice(store, selector)
   }
 
   const useMultiple = <U = T>(options: { keys: TKey[]; selector?: (state: T) => U }) => {
