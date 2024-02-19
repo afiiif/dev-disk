@@ -30,7 +30,7 @@ export type UseStores<
     ...args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]
   ): [U, StoreApiWithKey<T, TKey, TProps>]
 } & {
-  useMultiple: <U = T>(keys: TKey[], selector?: ((state: T) => U) | undefined) => U[]
+  useMultiple: <U = T>(options: { keys: TKey[]; selector?: (state: T) => U }) => U[]
 }
 
 export type CreateStoresOptions<
@@ -79,7 +79,8 @@ export const createStores = <
     return [slice, store]
   }
 
-  const useMultiple = <U = T>(keys: TKey[], selector?: (state: T) => U) => {
+  const useMultiple = <U = T>(options: { keys: TKey[]; selector?: (state: T) => U }) => {
+    const { keys, selector } = options
     const keyHashes = keys.map((key) => hashKeyFn(key))
     const keyHashesJoined = keyHashes.join('_')
 
