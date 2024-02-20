@@ -80,6 +80,11 @@ export type QueryStoreApi<T extends Query> = {
   }
   fetchNextPage: () => Promise<QueryState<T>>
   reset: () => void
+  invalidate: () => void
+  optimisticUpdate: (response: T['response'] | ((prevState: QueryState<T>) => T['response'])) => {
+    revert: () => void
+    invalidate: () => void
+  }
 }
 
 export type InitQueryOptions<T extends Query> = {
@@ -158,7 +163,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
     T['key'] extends Record<string, any> ? T['key'] : Record<string, never>,
     QueryStoreApi<T>
   > = (store) => {
-    const { set, get, getInitial, key } = store
+    const { set, get, getInitial, getSubscribers, key } = store
 
     store.internal = {
       timeout: {},
@@ -338,6 +343,33 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
       store.internal.ignoreResponse.fetch = true
       store.internal.ignoreResponse.fetchNextPage = true
       set(getInitial())
+    }
+
+    store.invalidate = () => {
+      set({ responseUpdatedAt: undefined })
+      if (getSubscribers().size > 0) fetch()
+    }
+
+    store.optimisticUpdate = (
+      response: T['response'] | ((prevState: QueryState<T>) => T['response']),
+    ) => {
+      const prevState = get()
+      const optimisticResponse = getValue(response, prevState)
+      set({
+        isOptimisticData: true,
+        response: optimisticResponse,
+        data: select(optimisticResponse, prevState),
+      })
+      store.internal.ignoreResponse.fetch = true
+      store.internal.ignoreResponse.fetchNextPage = true
+      const revert = () => {
+        set({
+          isOptimisticData: false,
+          response: prevState.response,
+          data: prevState.data,
+        })
+      }
+      return { revert, invalidate: store.invalidate }
     }
 
     return {

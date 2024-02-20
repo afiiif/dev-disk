@@ -1,4 +1,4 @@
-import { InitQueryOptions, Query, QueryState, getValue, initQuery, isClient } from 'dev-disk'
+import { InitQueryOptions, Maybe, Query, QueryState, getValue, initQuery, isClient } from 'dev-disk'
 import { CreateStoresOptions, createStores } from './create-stores.ts'
 
 // ----------------------------------------
@@ -142,5 +142,15 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
     })(),
   )
 
-  return useQuery
+  const reset = (key?: Maybe<T['key']>) => {
+    if (key) useQuery.getStore(key as any).reset()
+    else useQuery.stores.forEach((store) => store.reset())
+  }
+
+  const invalidate = (key?: Maybe<T['key']>) => {
+    if (key) useQuery.getStore(key as any).invalidate()
+    else useQuery.stores.forEach((store) => store.invalidate())
+  }
+
+  return Object.assign(useQuery, { reset, invalidate })
 }
