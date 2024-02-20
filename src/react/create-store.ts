@@ -14,10 +14,10 @@ const { useState } = ReactExports
 export type UseStore<
   T extends Record<string, any>,
   TProps extends Record<string, any> = Record<string, never>,
-> = StoreApi<T> &
-  TProps & {
-    <U = T>(selector?: (state: T) => U): U
-  }
+> = {
+  <U = T>(selector?: (state: T) => U): U
+  $: StoreApi<T> & TProps
+}
 
 // ----------------------------------------
 // Source code
@@ -35,7 +35,9 @@ export const createStore = <
     return useSyncStoreSlice(storeApi, selector)
   }
 
-  return Object.assign(useStore, storeApi)
+  return Object.assign(useStore, {
+    $: storeApi,
+  })
 }
 
 export const useInitialValue = <T extends Record<string, any>>(

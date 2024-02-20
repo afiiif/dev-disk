@@ -37,7 +37,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
     initializer,
     (() => {
       const windowFocusHandler = () => {
-        useQuery.stores.forEach((store) => {
+        useQuery.$.stores.forEach((store) => {
           if (store.getSubscribers().size === 0) return
           const result = getValue(fetchOnWindowFocus, store.key)
           if (result === 'always') store.fetch()
@@ -46,7 +46,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
       }
 
       const reconnectHandler = () => {
-        useQuery.stores.forEach((store) => {
+        useQuery.$.stores.forEach((store) => {
           if (store.getSubscribers().size === 0) return
           const result = getValue(fetchOnReconnect, store.key)
           if (result === 'always') store.fetch()
@@ -62,7 +62,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
         //  - Handle fetchOnWindowFocus & fetchOnReconnect
         //  - Cancel garbage collection timeout
         onFirstSubscribe: (state) => {
-          const store = useQuery.getStore(state.key)
+          const store = useQuery.$.getStore(state.key)
           if (state.isSuccess) {
             const refetchIntervalValue = isClient && getValue(refetchInterval, state)
             if (refetchIntervalValue) {
@@ -83,7 +83,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
         // onSubscribe:
         //  - Handle fetchOnMount
         onSubscribe: (state) => {
-          const store = useQuery.getStore(state.key)
+          const store = useQuery.$.getStore(state.key)
           const result = getValue(fetchOnMount, store.key)
           if (result === 'always') store.fetch()
           else if (result) store.fetch.cacheFirst()
@@ -98,14 +98,14 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
         //    (disable fetchOnWindowFocus & fetchOnReconnect since it has no subscribers anymore)
         onLastUnsubscribe: (state) => {
           let totalSubs = 0
-          useQuery.stores.forEach((store) => {
+          useQuery.$.stores.forEach((store) => {
             if (store.getSubscribers()) totalSubs++
           })
           if (isClient && totalSubs === 0) {
             if (fetchOnWindowFocus) window.removeEventListener('focus', windowFocusHandler)
             if (fetchOnReconnect) window.removeEventListener('online', reconnectHandler)
           }
-          const store = useQuery.getStore(state.key)
+          const store = useQuery.$.getStore(state.key)
           store.set({ retryCount: 0, retryNextPageCount: 0 })
           clearTimeout(store.internal.timeout.retry)
           clearTimeout(store.internal.timeout.retryNextPage)
@@ -119,8 +119,8 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
         // onBeforeChangeKey:
         //  - Handle keepPreviousData
         onBeforeChangeKey: (nextKey, prevKey) => {
-          const pStore = useQuery.getStore(prevKey)
-          const nStore = useQuery.getStore(nextKey)
+          const pStore = useQuery.$.getStore(prevKey)
+          const nStore = useQuery.$.getStore(nextKey)
           if (keepPreviousData) {
             const nextData = nStore.get()
             const prevData = pStore.get()
@@ -143,24 +143,26 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
   )
 
   const reset = (key?: Maybe<T['key']>) => {
-    if (key) useQuery.getStore(key as any).reset()
-    else useQuery.stores.forEach((store) => store.reset())
+    if (key) useQuery.$.getStore(key as any).reset()
+    else useQuery.$.stores.forEach((store) => store.reset())
   }
 
   const invalidate = (key?: Maybe<T['key']>) => {
-    if (key) useQuery.getStore(key as any).invalidate()
-    else useQuery.stores.forEach((store) => store.invalidate())
+    if (key) useQuery.$.getStore(key as any).invalidate()
+    else useQuery.$.stores.forEach((store) => store.invalidate())
   }
 
   const useSuspend = (
     key?: T['key'] extends Record<string, any> ? T['key'] : Record<string, never>,
   ) => {
     const state = useQuery(key)
-    const store = useQuery.getStore(key)
+    const store = useQuery.$.getStore(key)
     if (state.isLoading) throw store.fetch()
     if (state.isError) throw store.get().error
     return state
   }
 
-  return Object.assign(useQuery, { reset, invalidate, useSuspend })
+  return Object.assign(useQuery, {
+    $: { ...useQuery.$, reset, invalidate, useSuspend },
+  })
 }

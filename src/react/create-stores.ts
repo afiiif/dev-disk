@@ -24,10 +24,11 @@ export type UseStores<
   T extends Record<string, any>,
   TKey extends Record<string, any>,
   TProps extends Record<string, any> = Record<string, never>,
-> = StoresApi<T, TKey, TProps> & {
+> = {
   <U = T>(...args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]): U
-} & {
-  useMultiple: <U = T>(options: { keys: TKey[]; selector?: (state: T) => U }) => U[]
+  $: StoresApi<T, TKey, TProps> & {
+    useMultiple: <U = T>(options: { keys: TKey[]; selector?: (state: T) => U }) => U[]
+  }
 }
 
 export type CreateStoresOptions<
@@ -92,5 +93,7 @@ export const createStores = <
     return useSyncStoresSlice(stores, selector)
   }
 
-  return Object.assign(useStores, { ...storesApi, useMultiple })
+  return Object.assign(useStores, {
+    $: { ...storesApi, useMultiple },
+  })
 }
