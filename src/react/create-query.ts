@@ -142,6 +142,12 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
     })(),
   )
 
+  const fetch = Object.assign((key?: Maybe<T['key']>) => useQuery.$.getStore(key as any).fetch(), {
+    cacheFirst: (key?: Maybe<T['key']>) => useQuery.$.getStore(key as any).fetch.cacheFirst(),
+  })
+
+  const fetchNextPage = (key?: Maybe<T['key']>) => useQuery.$.getStore(key as any).fetchNextPage()
+
   const reset = (key?: Maybe<T['key']>) => {
     if (key) useQuery.$.getStore(key as any).reset()
     else useQuery.$.stores.forEach((store) => store.reset())
@@ -151,6 +157,11 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
     if (key) useQuery.$.getStore(key as any).invalidate()
     else useQuery.$.stores.forEach((store) => store.invalidate())
   }
+
+  const optimisticUpdate = (
+    key: Maybe<T['key']>,
+    response: T['response'] | ((prevState: QueryState<T>) => T['response']),
+  ) => useQuery.$.getStore(key as any).optimisticUpdate(response)
 
   const useSuspend = (
     key?: T['key'] extends Record<string, any> ? T['key'] : Record<string, never>,
@@ -163,6 +174,14 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
   }
 
   return Object.assign(useQuery, {
-    $: { ...useQuery.$, reset, invalidate, useSuspend },
+    $: {
+      ...useQuery.$,
+      fetch,
+      fetchNextPage,
+      reset,
+      invalidate,
+      optimisticUpdate,
+      useSuspend,
+    },
   })
 }

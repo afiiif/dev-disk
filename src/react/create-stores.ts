@@ -6,8 +6,10 @@ import ReactExports from 'react'
 import {
   InitStoresOptions,
   Maybe,
+  SetState,
   StoresApi,
   StoresInitializer,
+  Subscriber,
   hashStoreKey,
   identity,
   initStores,
@@ -27,6 +29,11 @@ export type UseStores<
 > = {
   <U = T>(...args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]): U
   $: StoresApi<T, TKey, TProps> & {
+    set: (key: Maybe<TKey>, value: SetState<T>) => void
+    get: (key?: Maybe<TKey>) => T
+    subscribe: (key: Maybe<TKey>, subscriber: Subscriber<T>) => () => void
+    getSubscribers: (key?: Maybe<TKey>) => Set<Subscriber<T>>
+    getInitial: (key?: Maybe<TKey>) => T
     useMultiple: <U = T>(options: { keys: TKey[]; selector?: (state: T) => U }) => U[]
   }
 }
@@ -94,6 +101,15 @@ export const createStores = <
   }
 
   return Object.assign(useStores, {
-    $: { ...storesApi, useMultiple },
+    $: {
+      ...storesApi,
+      set: (key: Maybe<TKey>, value: SetState<T>) => storesApi.getStore(key).set(value),
+      get: (key?: Maybe<TKey>) => storesApi.getStore(key).get(),
+      getInitial: (key?: Maybe<TKey>) => storesApi.getStore(key).getInitial(),
+      subscribe: (key: Maybe<TKey>, subscriber: Subscriber<T>) =>
+        storesApi.getStore(key).subscribe(subscriber),
+      getSubscribers: (key?: Maybe<TKey>) => storesApi.getStore(key).getSubscribers(),
+      useMultiple,
+    },
   })
 }
