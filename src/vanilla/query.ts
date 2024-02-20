@@ -146,7 +146,7 @@ const getErrorState = <E, P>(error: E, pageParams: P[]) => {
 export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
   const {
     queryFn,
-    staleTime = 3000, // 3 seconds
+    staleTime = 2000, // 2 seconds
     enabled = true,
     onSuccess = noop,
     onError,
