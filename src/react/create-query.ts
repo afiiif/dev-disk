@@ -1,5 +1,22 @@
-import { InitQueryOptions, Maybe, Query, QueryState, getValue, initQuery, isClient } from 'dev-disk'
+// import { useDebugValue, useSyncExternalStore } from 'react'
+// That doesn't work in ESM, because React libs are CJS only.
+// See: https://github.com/pmndrs/valtio/issues/452
+// The following is a workaround until ESM is supported.
+import ReactExports from 'react'
+import {
+  InitQueryOptions,
+  Maybe,
+  Query,
+  QueryState,
+  getValue,
+  hasValue,
+  identity,
+  initQuery,
+  isClient,
+} from 'dev-disk'
 import { CreateStoresOptions, createStores } from './create-stores.ts'
+
+const { useState } = ReactExports
 
 // ----------------------------------------
 // Type definitions
@@ -31,6 +48,8 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
     refetchInterval = false,
     keepPreviousData,
     gcTime = 5 * 60 * 1000, // 5 minutes
+    select = identity as NonNullable<InitQueryOptions<T>['select']>,
+    getNextPageParam = () => undefined,
   } = options
 
   const useQuery = createStores(
@@ -119,9 +138,9 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
         // onBeforeChangeKey:
         //  - Handle keepPreviousData
         onBeforeChangeKey: (nextKey, prevKey) => {
-          const pStore = useQuery.$.getStore(prevKey)
-          const nStore = useQuery.$.getStore(nextKey)
           if (keepPreviousData) {
+            const pStore = useQuery.$.getStore(prevKey)
+            const nStore = useQuery.$.getStore(nextKey)
             const nextData = nStore.get()
             const prevData = pStore.get()
             if (prevData.data && !nextData.data) {
@@ -158,10 +177,40 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
     else useQuery.$.stores.forEach((store) => store.invalidate())
   }
 
-  const optimisticUpdate = (
-    key: Maybe<T['key']>,
-    response: T['response'] | ((prevState: QueryState<T>) => T['response']),
-  ) => useQuery.$.getStore(key as any).optimisticUpdate(response)
+  const optimisticUpdate = ({
+    key,
+    response,
+  }: {
+    key: Maybe<T['key']>
+    response: T['response'] | ((prevState: QueryState<T>) => T['response'])
+  }) => useQuery.$.getStore(key as any).optimisticUpdate(response)
+
+  const useInitialResponse = ({
+    key,
+    response,
+  }: {
+    key: T['key'] extends Record<string, any> ? T['key'] : Record<string, never>
+    response: T['response']
+  }) => {
+    useState(() => {
+      const store = useQuery.$.getStore(key)
+      const state = store.get()
+      if (response === undefined || state.isSuccess) return
+      const newPageParam = getNextPageParam(response, state)
+      store.set({
+        status: 'success',
+        isPending: false,
+        isSuccess: true,
+        isError: false,
+        response,
+        responseUpdatedAt: Date.now(),
+        data: select(response, state),
+        pageParam: newPageParam,
+        pageParams: [undefined, newPageParam],
+        hasNextPage: hasValue(newPageParam),
+      })
+    })
+  }
 
   const useSuspend = (
     key?: T['key'] extends Record<string, any> ? T['key'] : Record<string, never>,
@@ -181,6 +230,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
       reset,
       invalidate,
       optimisticUpdate,
+      useInitialResponse,
       useSuspend,
     },
   })
