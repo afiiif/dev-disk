@@ -152,5 +152,15 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
     else useQuery.stores.forEach((store) => store.invalidate())
   }
 
-  return Object.assign(useQuery, { reset, invalidate })
+  const useSuspend = (
+    key?: T['key'] extends Record<string, any> ? T['key'] : Record<string, never>,
+  ) => {
+    const state = useQuery(key)
+    const store = useQuery.getStore(key)
+    if (state.isLoading) throw store.fetch()
+    if (state.isError) throw store.get().error
+    return state
+  }
+
+  return Object.assign(useQuery, { reset, invalidate, useSuspend })
 }
