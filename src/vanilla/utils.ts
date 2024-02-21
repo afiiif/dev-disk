@@ -7,8 +7,18 @@ export type Maybe<T> = T | null | undefined
  */
 export const isClient = typeof window !== 'undefined' && !('Deno' in window)
 
+/**
+ * Empty function.
+ */
 export const noop = () => {}
 
+/**
+ * Identity function.
+ *
+ * It accepts 1 argument, and simply return it.
+ *
+ * `const identity = value => value`
+ */
 export const identity = <T>(value: T) => value
 
 /**

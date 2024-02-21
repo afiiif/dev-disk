@@ -1,41 +1,43 @@
-export function shallow<T>(objA: T, objB: T) {
-  if (Object.is(objA, objB)) {
+/**
+ * Shallow compare 2 values.
+ */
+export const shallow = <T>(a: T, b: T) => {
+  if (Object.is(a, b)) {
     return true
   }
-  if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) {
+
+  if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
     return false
   }
 
-  if (objA instanceof Map && objB instanceof Map) {
-    if (objA.size !== objB.size) return false
+  if (a instanceof Map && b instanceof Map) {
+    if (a.size !== b.size) return false
 
-    for (const [key, value] of objA) {
-      if (!Object.is(value, objB.get(key))) {
+    for (const [key, value] of a) {
+      if (!Object.is(value, b.get(key))) {
         return false
       }
     }
     return true
   }
 
-  if (objA instanceof Set && objB instanceof Set) {
-    if (objA.size !== objB.size) return false
+  if (a instanceof Set && b instanceof Set) {
+    if (a.size !== b.size) return false
 
-    for (const value of objA) {
-      if (!objB.has(value)) {
-        return false
-      }
+    for (const value of a) {
+      if (!b.has(value)) return false
     }
     return true
   }
 
-  const keysA = Object.keys(objA) as (keyof T)[]
-  if (keysA.length !== Object.keys(objB).length) {
+  const keysA = Object.keys(a) as (keyof T)[]
+  if (keysA.length !== Object.keys(b).length) {
     return false
   }
   for (let i = 0; i < keysA.length; i++) {
     if (
-      !Object.prototype.hasOwnProperty.call(objB, keysA[i]) ||
-      !Object.is(objA[keysA[i]], objB[keysA[i]])
+      !Object.prototype.hasOwnProperty.call(b, keysA[i]) ||
+      !Object.is(a[keysA[i]], b[keysA[i]])
     ) {
       return false
     }
