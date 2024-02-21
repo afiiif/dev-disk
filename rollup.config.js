@@ -97,7 +97,7 @@ function createCommonJSConfig(input, output) {
         delimiters: ['\\b', '\\b(?!(\\.|/))'],
         preventAssignment: true,
       }),
-      babelPlugin(getBabelOptions({ ie: 11 })),
+      babelPlugin(getBabelOptions('defaults')),
     ],
   }
 }
