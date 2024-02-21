@@ -1,5 +1,5 @@
 import { InitStoreOptions, StoreApi, initStore } from './store.ts'
-import { Maybe, getValue, hashStoreKey } from './utils.ts'
+import { Maybe, getHash, getValue } from './utils.ts'
 
 // ----------------------------------------
 // Type definitions
@@ -43,7 +43,7 @@ export const initStores = <
   initializer: StoresInitializer<T, TKey, TProps>,
   options: InitStoresOptions<T, TKey> = {},
 ): StoresApi<T, TKey, TProps> => {
-  const { hashKeyFn = hashStoreKey } = options
+  const { hashKeyFn = getHash } = options
 
   const stores = new Map<string, StoreApiWithKey<T, TKey, TProps>>()
 

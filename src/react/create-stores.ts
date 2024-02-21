@@ -10,7 +10,7 @@ import {
   StoresApi,
   StoresInitializer,
   Subscriber,
-  hashStoreKey,
+  getHash,
   identity,
   initStores,
   noop,
@@ -58,7 +58,7 @@ export const createStores = <
 ): UseStores<T, TKey, TProps> => {
   // prettier-ignore
   const {
-    hashKeyFn = hashStoreKey,
+    hashKeyFn = getHash,
     onBeforeChangeKey = noop,
   } = options
 
