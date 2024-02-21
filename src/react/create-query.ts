@@ -127,7 +127,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
             if (prevData.data && !nextData.data) {
               nStore.set({
                 status: 'success',
-                isLoading: false,
+                isPending: false,
                 isSuccess: true,
                 isError: false,
                 data: prevData.data,
@@ -168,7 +168,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => 
   ) => {
     const state = useQuery(key)
     const store = useQuery.$.getStore(key)
-    if (state.isLoading) throw store.fetch()
+    if (state.isPending) throw store.fetch()
     if (state.isError) throw store.get().error
     return state
   }

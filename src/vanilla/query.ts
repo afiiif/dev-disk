@@ -27,8 +27,8 @@ export type QueryState<T extends Query> = QueryStatus<T> & {
 
 type QueryStatus<T extends Query> =
   | {
-      status: 'loading'
-      isLoading: true
+      status: 'pending'
+      isPending: true
       isSuccess: false
       isError: false
       data: undefined
@@ -37,7 +37,7 @@ type QueryStatus<T extends Query> =
     }
   | {
       status: 'success'
-      isLoading: false
+      isPending: false
       isSuccess: true
       isError: false
       data: T['data']
@@ -46,7 +46,7 @@ type QueryStatus<T extends Query> =
     }
   | {
       status: 'error'
-      isLoading: false
+      isPending: false
       isSuccess: false
       isError: true
       data: undefined | T['data']
@@ -111,7 +111,7 @@ const getSuccessState = <R, D, P>(response: R, data: D, pageParams: P[]) => {
   const pageParam = pageParams[pageParams.length - 1]
   return {
     status: 'success' as const,
-    isLoading: false as const,
+    isPending: false as const,
     isSuccess: true as const,
     isError: false as const,
     isWaiting: false,
@@ -192,7 +192,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
 
         const callQuery = (innerResolve = resolve) => {
           store.internal.ignoreResponse.fetch = false
-          set({ isGoingToRetry: false, isWaiting: true, isRefetching: !state.isLoading })
+          set({ isGoingToRetry: false, isWaiting: true, isRefetching: !state.isPending })
 
           const stateBeforeCallQuery = {
             ...get(),
@@ -271,7 +271,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
         console.warn('Calling fetchNextPage with invalid getNextPageParam option')
         return Promise.resolve(state)
       }
-      if (state.isLoading) return Promise.resolve(fetch())
+      if (state.isPending) return Promise.resolve(fetch())
       if (state.isRefetching && state.isGoingToRetry) {
         // Wait the retry process, and trigger fetchNextPage after that
         return store.internal.promise.fetch!.then(() => store.fetchNextPage())
@@ -374,8 +374,8 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
 
     return {
       key,
-      status: 'loading',
-      isLoading: true,
+      status: 'pending',
+      isPending: true,
       isSuccess: false,
       isError: false,
       isWaiting: false,
