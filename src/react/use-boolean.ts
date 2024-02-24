@@ -1,10 +1,4 @@
-// import { useMemo, useState } from 'react'
-// That doesn't work in ESM, because React libs are CJS only.
-// See: https://github.com/pmndrs/valtio/issues/452
-// The following is a workaround until ESM is supported.
-import ReactExports from 'react'
-
-const { useMemo, useState } = ReactExports
+import { useMemo, useState } from 'react'
 
 /**
  * Handle boolean state with useful utility functions.
