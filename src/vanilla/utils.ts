@@ -27,6 +27,12 @@ export const identity = <T>(value: T) => value
 export const hasValue = (value: any) => value !== undefined && value !== null
 
 /**
+ * Check if a value is object.
+ */
+export const isObject = (value: any) =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+/**
  * If the value is a function, it will invoke the function.\
  * If the value is not a function, it will just return it.
  */
