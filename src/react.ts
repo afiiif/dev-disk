@@ -1,5 +1,7 @@
 export * from './react/use-isomorphic-layout-effect.ts'
 export * from './react/use-boolean.ts'
+export * from './react/use-debounce-fn.ts'
+export * from './react/use-throttle-fn.ts'
 
 export * from './react/use-sync-store-slice.ts'
 export * from './react/create-store.ts'
