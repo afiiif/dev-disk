@@ -129,9 +129,6 @@
       "optional": true
     }
   },
-  "engines": {
-    "node": ">=12.20.0"
-  },
   "prettier": {
     "semi": false,
     "singleQuote": true,
