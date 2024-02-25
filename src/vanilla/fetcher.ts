@@ -1,4 +1,4 @@
-import { createError } from './utils.ts'
+import { createError } from 'dev-disk'
 
 type UrlParams = Record<string, string | number | boolean | null | undefined>
 
@@ -8,16 +8,20 @@ export const encodeObjectToQueryString = (params: UrlParams) =>
     .map((kv) => (kv as [string, string | number | boolean]).map(encodeURIComponent).join('='))
     .join('&')
 
-export const simpleFetch = async <TResponse, TPayload>({
+type SendReqOptions<TPayload, TParams extends UrlParams> = Omit<RequestInit, 'body'> & {
+  url: string
+  payload?: TPayload
+  params?: TParams
+  gql?: string
+}
+
+const send_ = async <TResponse, TPayload, TParams extends UrlParams>({
   url,
   params,
   payload,
   gql,
   ...options
-}: Omit<RequestInit, 'body'> & { url: string; payload?: TPayload } & (
-    | { params?: UrlParams; gql?: never }
-    | { params?: never; gql?: string }
-  )) => {
+}: SendReqOptions<TPayload, TParams>) => {
   const defaultOptions: RequestInit = {}
   if (gql) {
     defaultOptions.method = 'POST'
@@ -75,4 +79,37 @@ export const simpleFetch = async <TResponse, TPayload>({
     response: resText,
     request: finalOptions,
   })
+}
+
+export const send = {
+  /**
+   * Send HTTP request with GET method.
+   */
+  get: <TResponse, TPayload, TParams extends UrlParams>(
+    options: Omit<SendReqOptions<TPayload, TParams>, 'method' | 'payload' | 'gql'>,
+  ) => send_<TResponse, TPayload, TParams>({ method: 'get', ...options }),
+  /**
+   * Send HTTP request with POST method.
+   */
+  post: <TResponse, TPayload, TParams extends UrlParams>(
+    options: Omit<SendReqOptions<TPayload, TParams>, 'method' | 'gql'>,
+  ) => send_<TResponse, TPayload, TParams>({ method: 'post', ...options }),
+  /**
+   * Send HTTP request with PUT method.
+   */
+  put: <TResponse, TPayload, TParams extends UrlParams>(
+    options: Omit<SendReqOptions<TPayload, TParams>, 'method' | 'gql'>,
+  ) => send_<TResponse, TPayload, TParams>({ method: 'put', ...options }),
+  /**
+   * Send HTTP request with DELETE method.
+   */
+  delete: <TResponse, TPayload, TParams extends UrlParams>(
+    options: Omit<SendReqOptions<TPayload, TParams>, 'method' | 'gql'>,
+  ) => send_<TResponse, TPayload, TParams>({ method: 'delete', ...options }),
+  /**
+   * Send HTTP request for GraphQL server.
+   */
+  gql: <TResponse, TPayload, TParams extends UrlParams>(
+    options: Omit<SendReqOptions<TPayload, TParams>, 'method'> & { gql: string },
+  ) => send_<TResponse, TPayload, TParams>({ method: 'post', ...options }),
 }
