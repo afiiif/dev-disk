@@ -1,30 +1,28 @@
-type ReplacedMap = {
-  type: 'Map'
-  value: [string, unknown][]
-}
+import {
+  Queries,
+  RenderHookOptions,
+  queries,
+  renderHook as renderHookOriginal,
+} from '@testing-library/react'
 
-export const replacer = (key: string, value: unknown): ReplacedMap | unknown => {
-  if (value instanceof Map) {
-    return {
-      type: 'Map',
-      value: Array.from(value.entries()),
-    }
-  } else {
+// https://github.com/testing-library/react-testing-library/pull/991#issuecomment-1207138334
+export const renderHook = <
+  Result,
+  Props,
+  Q extends Queries = typeof queries,
+  Container extends Element | DocumentFragment = HTMLElement,
+  BaseElement extends Element | DocumentFragment = Container,
+>(
+  render: (initialProps: Props) => Result,
+  options?: RenderHookOptions<Props, Q, Container, BaseElement>,
+) => {
+  const results: Result[] = []
+
+  const renderHookResult = renderHookOriginal((initialProps) => {
+    const value = render(initialProps)
+    results.push(value)
     return value
-  }
-}
+  }, options)
 
-export const reviver = (key: string, value: ReplacedMap | unknown) => {
-  if (isReplacedMap(value)) {
-    return new Map(value.value)
-  }
-  return value
-}
-
-const isReplacedMap = (value: any): value is ReplacedMap => {
-  if (value && value.type === 'Map') {
-    return true
-  }
-
-  return false
+  return Object.assign(renderHookResult, { results })
 }
