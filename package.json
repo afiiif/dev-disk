@@ -66,7 +66,7 @@
     "prettier": "prettier \"*.{js,json,md}\" \"{examples,src,tests,docs}/**/*.{js,jsx,ts,tsx,md,mdx}\" --write",
     "prettier:ci": "prettier '*.{js,json,md}' '{examples,src,tests,docs}/**/*.{js,jsx,ts,tsx,md,mdx}' --list-different",
     "eslint": "eslint --no-eslintrc --c .eslintrc.json --fix '*.{js,json,ts}' '{src,tests}/**/*.{ts,tsx}'",
-    "eslint:ci": "eslint  --no-eslintrc --c .eslintrc.json '*.{js,json,ts}' '{src,tests}/**/*.{ts,tsx}'",
+    "eslint:ci": "eslint --no-eslintrc --c .eslintrc.json '*.{js,json,ts}' '{src,tests}/**/*.{ts,tsx}'",
     "pretest": "tsc",
     "test": "vitest --ui --coverage",
     "test:ci": "vitest",

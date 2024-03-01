@@ -1,0 +1,47 @@
+name: Code Quality Check
+
+on:
+  push:
+    branches: [main, beta, alpha, experimental]
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        uses: bahmutov/npm-install@v1
+      - name: Lint files
+        run: yarn eslint:ci
+
+  type-check:
+    name: Type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        uses: bahmutov/npm-install@v1
+      - name: Perform type checking
+        run: yarn pretest
+
+  test:
+    name: Unit test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        uses: bahmutov/npm-install@v1
+      - name: Perform unit test
+        run: yarn test:ci
