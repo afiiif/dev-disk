@@ -15,7 +15,7 @@ type SendReqOptions<TPayload, TParams extends UrlParams> = Omit<RequestInit, 'bo
   gql?: string
 }
 
-const send_ = async <TResponse, TPayload, TParams extends UrlParams>({
+const send = async <TResponse, TPayload, TParams extends UrlParams>({
   url,
   params,
   payload,
@@ -81,35 +81,43 @@ const send_ = async <TResponse, TPayload, TParams extends UrlParams>({
   })
 }
 
-export const send = {
+type SendReq = {
+  get: <TResponse, TParams extends UrlParams>(
+    options: Omit<RequestInit, 'body'> & { url: string; params?: TParams },
+  ) => Promise<TResponse>
+  post: <TResponse, TPayload, TParams extends UrlParams>(
+    options: Omit<RequestInit, 'body'> & { url: string; params?: TParams; payload?: TPayload },
+  ) => Promise<TResponse>
+  put: <TResponse, TPayload, TParams extends UrlParams>(
+    options: Omit<RequestInit, 'body'> & { url: string; params?: TParams; payload?: TPayload },
+  ) => Promise<TResponse>
+  delete: <TResponse, TPayload, TParams extends UrlParams>(
+    options: Omit<RequestInit, 'body'> & { url: string; params?: TParams; payload?: TPayload },
+  ) => Promise<TResponse>
+  gql: <TResponse, TPayload>(
+    options: Omit<RequestInit, 'body'> & { url: string; gql: string; payload?: TPayload },
+  ) => Promise<TResponse>
+}
+
+export const sendReq: SendReq = {
   /**
    * Send HTTP request with GET method.
    */
-  get: <TResponse, TPayload, TParams extends UrlParams>(
-    options: Omit<SendReqOptions<TPayload, TParams>, 'method' | 'payload' | 'gql'>,
-  ) => send_<TResponse, TPayload, TParams>({ method: 'get', ...options }),
+  get: (options) => send({ method: 'get', ...options }),
   /**
    * Send HTTP request with POST method.
    */
-  post: <TResponse, TPayload, TParams extends UrlParams>(
-    options: Omit<SendReqOptions<TPayload, TParams>, 'method' | 'gql'>,
-  ) => send_<TResponse, TPayload, TParams>({ method: 'post', ...options }),
+  post: (options) => send({ method: 'post', ...options }),
   /**
    * Send HTTP request with PUT method.
    */
-  put: <TResponse, TPayload, TParams extends UrlParams>(
-    options: Omit<SendReqOptions<TPayload, TParams>, 'method' | 'gql'>,
-  ) => send_<TResponse, TPayload, TParams>({ method: 'put', ...options }),
+  put: (options) => send({ method: 'put', ...options }),
   /**
    * Send HTTP request with DELETE method.
    */
-  delete: <TResponse, TPayload, TParams extends UrlParams>(
-    options: Omit<SendReqOptions<TPayload, TParams>, 'method' | 'gql'>,
-  ) => send_<TResponse, TPayload, TParams>({ method: 'delete', ...options }),
+  delete: (options) => send({ method: 'delete', ...options }),
   /**
    * Send HTTP request for GraphQL server.
    */
-  gql: <TResponse, TPayload, TParams extends UrlParams>(
-    options: Omit<SendReqOptions<TPayload, TParams>, 'method'> & { gql: string },
-  ) => send_<TResponse, TPayload, TParams>({ method: 'post', ...options }),
+  gql: (options) => send({ method: 'post', ...options }),
 }
