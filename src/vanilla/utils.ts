@@ -95,3 +95,14 @@ export const getHash = (value?: any) =>
           }, {} as any)
       : val,
   )
+
+/**
+ * Get a swaped key-value object.
+ */
+export const swapKeyValue = <K extends string | number, V extends string | number>(
+  obj: Record<K, V>,
+): Record<V, K> => {
+  const result = {} as Record<V, K>
+  for (const key in obj) result[obj[key]] = key
+  return result
+}

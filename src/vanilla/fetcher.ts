@@ -1,12 +1,6 @@
-import { createError } from 'dev-disk'
+import { createError, objectToQueryString } from 'dev-disk'
 
 type UrlParams = Record<string, string | number | boolean | null | undefined>
-
-export const encodeObjectToQueryString = (params: UrlParams) =>
-  Object.entries(params)
-    .filter(([, value]) => value !== undefined && value !== null)
-    .map((kv) => (kv as [string, string | number | boolean]).map(encodeURIComponent).join('='))
-    .join('&')
 
 type SendReqOptions<TPayload, TParams extends UrlParams> = Omit<RequestInit, 'body'> & {
   url: string
@@ -30,7 +24,7 @@ const send = async <TResponse, TPayload, TParams extends UrlParams>({
     defaultOptions.body = payload === undefined ? null : JSON.stringify(payload)
   }
 
-  const finalUrl = params ? [url, encodeObjectToQueryString(params)].join('?') : url
+  const finalUrl = params ? [url, objectToQueryString(params)].join('?') : url
 
   const finalOptions = {
     headers: { 'Content-Type': 'application/json', ...options.headers },
