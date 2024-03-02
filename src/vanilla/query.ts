@@ -147,7 +147,7 @@ const getErrorState = <E, P>(error: E, pageParams: P[]) => {
 export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
   const {
     queryFn,
-    staleTime = 2000, // 2 seconds
+    staleTime = 2500, // 2.5 seconds
     enabled = true,
     onSuccess = noop,
     onError,
@@ -155,7 +155,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
     select = identity as NonNullable<InitQueryOptions<T>['select']>,
     getNextPageParam = () => undefined,
     maxRetryCount = 1,
-    retryDelay = 2000, // 2 seconds
+    retryDelay = 1500, // 1.5 seconds
     refetchInterval = false,
   } = options
 
