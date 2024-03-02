@@ -83,3 +83,46 @@ describe('createStore', () => {
     expect(useMyStore.$.getInitial()).toEqual({ a: 1, b: 10, c: 100 })
   })
 })
+
+describe('createStore with store event', () => {
+  const onFirstSubscribe = vi.fn()
+  const onSubscribe = vi.fn()
+  const onUnsubscribe = vi.fn()
+  const onLastUnsubscribe = vi.fn()
+
+  type Store = { counter: number; increment: () => void }
+  let useCounter: UseStore<Store>
+
+  beforeEach(() => {
+    useCounter = createStore<Store>(
+      ({ set }) => ({
+        counter: 1,
+        increment: () => set((prev) => ({ counter: prev.counter + 1 })),
+      }),
+      { onFirstSubscribe, onSubscribe, onUnsubscribe, onLastUnsubscribe },
+    )
+  })
+
+  it('triggers the store event', () => {
+    const hook1 = renderHook((selector?: (state: Store) => any) => useCounter(selector))
+    expect(onFirstSubscribe).toHaveBeenCalledTimes(1)
+    expect(onSubscribe).toHaveBeenCalledTimes(1)
+
+    const hook2 = renderHook(() => useCounter())
+    expect(onSubscribe).toHaveBeenCalledTimes(2)
+
+    hook2.unmount()
+    expect(onUnsubscribe).toHaveBeenCalledTimes(1)
+
+    expect(hook1.result.current.counter).toEqual(1)
+    expect(hook1.results.length).toEqual(1)
+    hook1.rerender((state) => state.counter)
+    expect(hook1.result.current).toEqual(1)
+    expect(hook1.results.length).toEqual(2)
+    expect(onSubscribe).toHaveBeenCalledTimes(2)
+
+    hook1.unmount()
+    expect(onUnsubscribe).toHaveBeenCalledTimes(2)
+    expect(onLastUnsubscribe).toHaveBeenCalledTimes(1)
+  })
+})
