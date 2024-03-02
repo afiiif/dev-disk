@@ -4,16 +4,23 @@ import {
   Maybe,
   Query,
   QueryState,
+  QueryStoreApi,
   getValue,
   hasValue,
   identity,
   initQuery,
   isClient,
 } from 'dev-disk'
-import { CreateStoresOptions, createStores } from './create-stores.ts'
+import { CreateStoresOptions, UseStores, createStores } from './create-stores.ts'
 
 // ----------------------------------------
 // Type definitions
+
+export type UseQuery<T extends Query> = UseStores<
+  QueryState<T>,
+  T['key'] extends Record<string, any> ? T['key'] : Record<string, never>,
+  QueryStoreApi<T>
+>
 
 export type CreateQueryOptions<T extends Query> = InitQueryOptions<T> &
   CreateStoresOptions<
@@ -30,7 +37,7 @@ export type CreateQueryOptions<T extends Query> = InitQueryOptions<T> &
 // ----------------------------------------
 // Source code
 
-export const createQuery = <T extends Query>(options: CreateQueryOptions<T>) => {
+export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): UseQuery<T> => {
   const initializer = initQuery(options)
 
   const defaultFetchOnWindowFocus = options.fetchOnMount ?? true
