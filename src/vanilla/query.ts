@@ -134,6 +134,7 @@ const getSuccessState = <R, D, P>(response: R, data: D, pageParams: P[]) => {
 const getErrorState = <E, P>(error: E, pageParams: P[]) => {
   const pageParam = pageParams[pageParams.length - 1]
   return {
+    isPending: false as const,
     isWaiting: false,
     isRefetching: false,
     error,
@@ -237,7 +238,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
               const nextState = getErrorState(error, __newPageParams)
               const isRefetchError = prevState.isSuccess && !prevState.isPreviousData
               if (isRefetchError) set({ ...nextState, isRefetchError })
-              else set({ ...nextState, status: 'error' })
+              else set({ ...nextState, status: 'error', isError: true })
               innerResolve(get())
               if (onError) onError(error, stateBeforeCallQuery)
               else console.error(error, get())
