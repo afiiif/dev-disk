@@ -4,13 +4,13 @@ import { noop } from './utils.ts'
 // ----------------------------------------
 // Type definitions
 
-export type Mutation = {
+export type AsyncAction = {
   variables?: any
   response?: any
   error?: any
 }
 
-export type MutationState<T extends Mutation> = {
+export type AsyncActionState<T extends AsyncAction> = {
   isWaiting: boolean
   isSuccess: boolean
   isError: boolean
@@ -21,53 +21,51 @@ export type MutationState<T extends Mutation> = {
   errorUpdatedAt: number | undefined
 }
 
-export type MutateFn<T extends Mutation> = T['variables'] extends undefined
+export type ActFn<T extends AsyncAction> = T['variables'] extends undefined
   ? () => Promise<{ response?: T['response']; error?: T['error']; variables?: T['variables'] }>
   : (
       variables: T['variables'],
     ) => Promise<{ response?: T['response']; error?: T['error']; variables?: T['variables'] }>
 
-export type InitMutationOptions<T extends Mutation> = {
-  mutationFn: (variables: T['variables'], state: MutationState<T>) => Promise<T['response']>
-  onMutate?: (variables: T['variables'], stateBeforeMutate: MutationState<T>) => void
+export type InitAsyncActionOptions<T extends AsyncAction> = {
+  actionFn: (variables: T['variables'], state: AsyncActionState<T>) => Promise<T['response']>
   onSuccess?: (
     response: T['response'],
     variables: T['variables'],
-    stateBeforeMutate: MutationState<T>,
+    stateBeforeMutate: AsyncActionState<T>,
   ) => void
   onError?: (
     error: T['error'],
     variables: T['variables'],
-    stateBeforeMutate: MutationState<T>,
+    stateBeforeMutate: AsyncActionState<T>,
   ) => void
-  onSettled?: (variables: T['variables'], stateBeforeMutate: MutationState<T>) => void
+  onSettled?: (variables: T['variables'], stateBeforeMutate: AsyncActionState<T>) => void
 }
 
 // ----------------------------------------
 // Source code
 
-export const initMutation = <T extends Mutation>(options: InitMutationOptions<T>) => {
+export const getAsyncActionStoreInitializer = <T extends AsyncAction>(
+  options: InitAsyncActionOptions<T>,
+) => {
   // prettier-ignore
   const {
-    mutationFn,
-    onMutate = noop,
+    actionFn,
     onSuccess = noop,
     onError,
     onSettled = noop,
   } = options
 
-  const initializer: StoreInitializer<
-    MutationState<T>,
-    { mutate: MutateFn<T>; reset: () => void }
-  > = (storeApi) => {
+  const initializer: StoreInitializer<AsyncActionState<T>, { act: ActFn<T>; reset: () => void }> = (
+    storeApi,
+  ) => {
     const { set, get, getInitial } = storeApi
 
-    storeApi.mutate = ((variables) => {
+    storeApi.act = ((variables) => {
       set({ isWaiting: true })
       const stateBeforeMutate = get()
-      onMutate(variables, stateBeforeMutate)
       return new Promise((resolve) => {
-        mutationFn(variables, stateBeforeMutate)
+        actionFn(variables, stateBeforeMutate)
           .then((response) => {
             set({
               isWaiting: false,
@@ -99,7 +97,7 @@ export const initMutation = <T extends Mutation>(options: InitMutationOptions<T>
             onSettled(variables, stateBeforeMutate)
           })
       })
-    }) as MutateFn<T>
+    }) as ActFn<T>
 
     storeApi.reset = () => set(getInitial())
 
