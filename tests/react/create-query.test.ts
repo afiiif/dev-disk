@@ -22,8 +22,8 @@ describe('createQuery for single query without param', () => {
 
   it('returns initial pending state', () => {
     const { result } = renderHook(() => useQuery())
-    expect(result.current.status).toBe('pending')
-    expect(result.current.isPending).toBe(true)
+    expect(result.current.status).toBe('empty')
+    expect(result.current.isEmpty).toBe(true)
     expect(result.current.isSuccess).toBe(false)
     expect(result.current.isError).toBe(false)
     expect(result.current.data).toBe(undefined)
@@ -42,8 +42,8 @@ describe('createQuery for single query without param', () => {
     await waitFor(() => {
       const { current } = hook1.result
       expect(current.isWaiting).toBe(true) // Waiting promise to be resolved
-      expect(current.status).toBe('pending')
-      expect(current.isPending).toBe(true)
+      expect(current.status).toBe('empty')
+      expect(current.isEmpty).toBe(true)
       expect(current.isSuccess).toBe(false)
       expect(current.isError).toBe(false)
     })
@@ -52,7 +52,7 @@ describe('createQuery for single query without param', () => {
       const { current } = hook1.result
       expect(current.isWaiting).toBe(false) // And the promise resolved
       expect(current.status).toBe('success')
-      expect(current.isPending).toBe(false)
+      expect(current.isEmpty).toBe(false)
       expect(current.isSuccess).toBe(true)
       expect(current.isError).toBe(false)
       expect(current.data).toEqual({ id: 1, name: 'test' })
@@ -89,8 +89,8 @@ describe('createQuery for single query without param', () => {
       expect(current.isGoingToRetry).toBe(true)
       expect(hook2.result.current.isGoingToRetry).toBe(true)
       // Status has not been updated yet
-      expect(current.status).toBe('pending')
-      expect(current.isPending).toBe(true)
+      expect(current.status).toBe('empty')
+      expect(current.isEmpty).toBe(true)
       expect(current.isSuccess).toBe(false)
       expect(current.isError).toBe(false)
       expect(current.data).toBe(undefined)
@@ -113,7 +113,7 @@ describe('createQuery for single query without param', () => {
     await waitFor(() => {
       const { current } = hook1.result
       expect(current.status).toBe('error')
-      expect(current.isPending).toBe(false)
+      expect(current.isEmpty).toBe(false)
       expect(current.isSuccess).toBe(false)
       expect(current.isError).toBe(true)
       expect(current.isWaiting).toBe(false)

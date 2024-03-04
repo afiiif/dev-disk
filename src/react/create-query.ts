@@ -147,7 +147,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
             if (prevData.data && !nextData.data) {
               nStore.set({
                 status: 'success',
-                isPending: false,
+                isEmpty: false,
                 isSuccess: true,
                 isError: false,
                 data: prevData.data,
@@ -200,7 +200,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
       const newPageParam = getNextPageParam(response, state)
       store.set({
         status: 'success',
-        isPending: false,
+        isEmpty: false,
         isSuccess: true,
         isError: false,
         response,
@@ -218,7 +218,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
   ) => {
     const state = useQuery(key)
     const store = useQuery.$.getStore(key)
-    if (state.isPending) throw store.fetch()
+    if (state.isEmpty) throw store.fetch()
     if (state.isError) throw store.get().error
     return state
   }
