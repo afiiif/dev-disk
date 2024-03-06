@@ -76,19 +76,34 @@ const send = async <TResponse, TPayload, TParams extends UrlParams>({
 }
 
 type SendReq = {
-  get: <TResponse, TParams extends UrlParams>(
+  get: <
+    TResponse,
+    TParams extends UrlParams = Record<string, string | number | boolean | null | undefined>,
+  >(
     options: Omit<RequestInit, 'body'> & { url: string; params?: TParams },
   ) => Promise<TResponse>
-  post: <TResponse, TPayload, TParams extends UrlParams>(
+  post: <
+    TResponse,
+    TPayload = any,
+    TParams extends UrlParams = Record<string, string | number | boolean | null | undefined>,
+  >(
     options: Omit<RequestInit, 'body'> & { url: string; params?: TParams; payload?: TPayload },
   ) => Promise<TResponse>
-  put: <TResponse, TPayload, TParams extends UrlParams>(
+  put: <
+    TResponse,
+    TPayload = any,
+    TParams extends UrlParams = Record<string, string | number | boolean | null | undefined>,
+  >(
     options: Omit<RequestInit, 'body'> & { url: string; params?: TParams; payload?: TPayload },
   ) => Promise<TResponse>
-  delete: <TResponse, TPayload, TParams extends UrlParams>(
+  delete: <
+    TResponse,
+    TPayload = any,
+    TParams extends UrlParams = Record<string, string | number | boolean | null | undefined>,
+  >(
     options: Omit<RequestInit, 'body'> & { url: string; params?: TParams; payload?: TPayload },
   ) => Promise<TResponse>
-  gql: <TResponse, TPayload>(
+  gql: <TResponse, TPayload = any>(
     options: Omit<RequestInit, 'body'> & { url: string; gql: string; payload?: TPayload },
   ) => Promise<TResponse>
 }
