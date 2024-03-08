@@ -37,7 +37,7 @@ describe('createQuery for single query without param', () => {
     const hook1 = renderHook(() => useQuery())
     const hook2 = renderHook(() => useQuery())
     expect(queryFn).toHaveBeenCalledTimes(1)
-    expect(queryFn).toHaveBeenCalledWith({}, useQuery.$.get())
+    expect(queryFn).toHaveBeenCalledWith({}, useQuery.get())
 
     await waitFor(() => {
       const { current } = hook1.result

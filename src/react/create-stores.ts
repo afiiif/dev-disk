@@ -22,7 +22,7 @@ export type UseStores<
   TProps extends Record<string, any> = Record<string, never>,
 > = {
   <U = T>(...args: [Maybe<TKey>, ((state: T) => U)?] | [((state: T) => U)?]): U
-  $: StoresApi<T, TKey, TProps> & {
+} & StoresApi<T, TKey, TProps> & {
     set: (key: Maybe<TKey>, value: SetState<T>) => void
     get: (key?: Maybe<TKey>) => T
     subscribe: (key: Maybe<TKey>, subscriber: Subscriber<T>) => () => void
@@ -30,7 +30,6 @@ export type UseStores<
     getInitial: (key?: Maybe<TKey>) => T
     useMultiple: <U = T>(options: { keys: TKey[]; selector?: (state: T) => U }) => U[]
   }
-}
 
 export type CreateStoresOptions<
   T extends Record<string, any>,
@@ -95,15 +94,13 @@ export const createStores = <
   }
 
   return Object.assign(useStores, {
-    $: {
-      ...storesApi,
-      set: (key: Maybe<TKey>, value: SetState<T>) => storesApi.getStore(key).set(value),
-      get: (key?: Maybe<TKey>) => storesApi.getStore(key).get(),
-      getInitial: (key?: Maybe<TKey>) => storesApi.getStore(key).getInitial(),
-      subscribe: (key: Maybe<TKey>, subscriber: Subscriber<T>) =>
-        storesApi.getStore(key).subscribe(subscriber),
-      getSubscribers: (key?: Maybe<TKey>) => storesApi.getStore(key).getSubscribers(),
-      useMultiple,
-    },
+    ...storesApi,
+    set: (key: Maybe<TKey>, value: SetState<T>) => storesApi.getStore(key).set(value),
+    get: (key?: Maybe<TKey>) => storesApi.getStore(key).get(),
+    getInitial: (key?: Maybe<TKey>) => storesApi.getStore(key).getInitial(),
+    subscribe: (key: Maybe<TKey>, subscriber: Subscriber<T>) =>
+      storesApi.getStore(key).subscribe(subscriber),
+    getSubscribers: (key?: Maybe<TKey>) => storesApi.getStore(key).getSubscribers(),
+    useMultiple,
   })
 }

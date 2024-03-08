@@ -57,7 +57,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
     initializer,
     (() => {
       const windowFocusHandler = () => {
-        useQuery.$.stores.forEach((store) => {
+        useQuery.stores.forEach((store) => {
           if (store.getSubscribers().size === 0) return
           const result = getValue(fetchOnWindowFocus, store.key)
           if (result === 'always') store.fetch()
@@ -66,7 +66,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
       }
 
       const reconnectHandler = () => {
-        useQuery.$.stores.forEach((store) => {
+        useQuery.stores.forEach((store) => {
           if (store.getSubscribers().size === 0) return
           const result = getValue(fetchOnReconnect, store.key)
           if (result === 'always') store.fetch()
@@ -82,7 +82,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
         //  - Handle fetchOnWindowFocus & fetchOnReconnect
         //  - Cancel garbage collection timeout
         onFirstSubscribe: (state) => {
-          const store = useQuery.$.getStore(state.key)
+          const store = useQuery.getStore(state.key)
           if (state.isSuccess) {
             const refetchIntervalValue = isClient && getValue(refetchInterval, state)
             if (refetchIntervalValue) {
@@ -103,7 +103,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
         // onSubscribe:
         //  - Handle fetchOnMount
         onSubscribe: (state) => {
-          const store = useQuery.$.getStore(state.key)
+          const store = useQuery.getStore(state.key)
           const result = getValue(fetchOnMount, store.key)
           if (result === 'always') store.fetch()
           else if (result) store.fetch.cacheFirst()
@@ -118,14 +118,14 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
         //    (disable fetchOnWindowFocus & fetchOnReconnect since it has no subscribers anymore)
         onLastUnsubscribe: (state) => {
           let totalSubs = 0
-          useQuery.$.stores.forEach((store) => {
+          useQuery.stores.forEach((store) => {
             if (store.getSubscribers()) totalSubs++
           })
           if (isClient && totalSubs === 0) {
             if (fetchOnWindowFocus) window.removeEventListener('focus', windowFocusHandler)
             if (fetchOnReconnect) window.removeEventListener('online', reconnectHandler)
           }
-          const store = useQuery.$.getStore(state.key)
+          const store = useQuery.getStore(state.key)
           store.set({ retryCount: 0, retryNextPageCount: 0 })
           clearTimeout(store.internal.timeout.retry)
           clearTimeout(store.internal.timeout.retryNextPage)
@@ -140,8 +140,8 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
         //  - Handle keepPreviousData
         onBeforeChangeKey: (nextKey, prevKey) => {
           if (keepPreviousData) {
-            const pStore = useQuery.$.getStore(prevKey)
-            const nStore = useQuery.$.getStore(nextKey)
+            const pStore = useQuery.getStore(prevKey)
+            const nStore = useQuery.getStore(nextKey)
             const nextData = nStore.get()
             const prevData = pStore.get()
             if (prevData.data && !nextData.data) {
@@ -162,20 +162,20 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
     })(),
   )
 
-  const fetch = Object.assign((key?: Maybe<T['key']>) => useQuery.$.getStore(key as any).fetch(), {
-    cacheFirst: (key?: Maybe<T['key']>) => useQuery.$.getStore(key as any).fetch.cacheFirst(),
+  const fetch = Object.assign((key?: Maybe<T['key']>) => useQuery.getStore(key as any).fetch(), {
+    cacheFirst: (key?: Maybe<T['key']>) => useQuery.getStore(key as any).fetch.cacheFirst(),
   })
 
-  const fetchNextPage = (key?: Maybe<T['key']>) => useQuery.$.getStore(key as any).fetchNextPage()
+  const fetchNextPage = (key?: Maybe<T['key']>) => useQuery.getStore(key as any).fetchNextPage()
 
   const reset = (key?: Maybe<T['key']>) => {
-    if (key) useQuery.$.getStore(key as any).reset()
-    else useQuery.$.stores.forEach((store) => store.reset())
+    if (key) useQuery.getStore(key as any).reset()
+    else useQuery.stores.forEach((store) => store.reset())
   }
 
   const invalidate = (key?: Maybe<T['key']>) => {
-    if (key) useQuery.$.getStore(key as any).invalidate()
-    else useQuery.$.stores.forEach((store) => store.invalidate())
+    if (key) useQuery.getStore(key as any).invalidate()
+    else useQuery.stores.forEach((store) => store.invalidate())
   }
 
   const optimisticUpdate = ({
@@ -184,7 +184,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
   }: {
     key: Maybe<T['key']>
     response: T['response'] | ((prevState: QueryState<T>) => T['response'])
-  }) => useQuery.$.getStore(key as any).optimisticUpdate(response)
+  }) => useQuery.getStore(key as any).optimisticUpdate(response)
 
   const useInitialResponse = ({
     key,
@@ -194,7 +194,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
     response: T['response']
   }) => {
     useState(() => {
-      const store = useQuery.$.getStore(key)
+      const store = useQuery.getStore(key)
       const state = store.get()
       if (response === undefined || state.isSuccess) return
       const newPageParam = getNextPageParam(response, state)
@@ -217,22 +217,19 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
     key?: T['key'] extends Record<string, any> ? T['key'] : Record<string, never>,
   ) => {
     const state = useQuery(key)
-    const store = useQuery.$.getStore(key)
+    const store = useQuery.getStore(key)
     if (state.isEmpty) throw store.fetch()
     if (state.isError) throw store.get().error
     return state
   }
 
   return Object.assign(useQuery, {
-    $: {
-      ...useQuery.$,
-      fetch,
-      fetchNextPage,
-      reset,
-      invalidate,
-      optimisticUpdate,
-      useInitialResponse,
-      useSuspend,
-    },
+    fetch,
+    fetchNextPage,
+    reset,
+    invalidate,
+    optimisticUpdate,
+    useInitialResponse,
+    useSuspend,
   })
 }

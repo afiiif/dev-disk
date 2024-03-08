@@ -10,8 +10,8 @@ export type UseStore<
   TProps extends Record<string, any> = Record<string, never>,
 > = {
   <U = T>(selector?: (state: T) => U): U
-  $: StoreApi<T> & TProps
-}
+} & StoreApi<T> &
+  TProps
 
 // ----------------------------------------
 // Source code
@@ -29,9 +29,7 @@ export const createStore = <
     return useSyncStoreSlice(storeApi, selector)
   }
 
-  return Object.assign(useStore, {
-    $: storeApi,
-  })
+  return Object.assign(useStore, storeApi)
 }
 
 export const useInitialValue = <T extends Record<string, any>>(

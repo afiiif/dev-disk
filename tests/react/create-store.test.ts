@@ -20,7 +20,7 @@ describe('createStore', () => {
   it('initializes the state with the initial data', () => {
     const { result } = renderHook(() => useCounter())
     expect(result.current.counter).toEqual(1)
-    expect(useCounter.$.get().counter).toEqual(1)
+    expect(useCounter.get().counter).toEqual(1)
   })
 
   it('subscribes to state changes', () => {
@@ -37,11 +37,11 @@ describe('createStore', () => {
     expect(hook2.result.current.counter).toEqual(2)
 
     act(() => {
-      useCounter.$.set((p) => ({ counter: p.counter + 5 }))
+      useCounter.set((p) => ({ counter: p.counter + 5 }))
     })
     expect(hook1.result.current.counter).toEqual(7)
     expect(hook2.result.current.counter).toEqual(7)
-    expect(useCounter.$.get().counter).toEqual(7)
+    expect(useCounter.get().counter).toEqual(7)
   })
 
   it('is able to be used with custom selector', () => {
@@ -53,34 +53,34 @@ describe('createStore', () => {
     expect(hook2.result.current).toEqual([10, false])
 
     act(() => {
-      useMyStore.$.set({ a: 2 })
+      useMyStore.set({ a: 2 })
     })
     expect(hook1.result.current).toEqual(2)
     expect(hook1.results.length).toEqual(2) // Re-rendered
     expect(hook2.results.length).toEqual(1) // Not re-rendered because of shallow selector
 
     act(() => {
-      useMyStore.$.set((p) => ({ c: p.c + 1 }))
+      useMyStore.set((p) => ({ c: p.c + 1 }))
     })
     expect(hook2.result.current).toEqual([10, false])
     expect(hook2.results.length).toEqual(1) // Not re-rendered because of shallow selector
 
     act(() => {
-      useMyStore.$.set((p) => ({ c: p.c + 1 }))
+      useMyStore.set((p) => ({ c: p.c + 1 }))
     })
     expect(hook2.result.current).toEqual([10, true])
     expect(hook2.results.length).toEqual(2) // Re-rendered
     expect(hook1.results.length).toEqual(2) // Not re-rendered because of shallow selector
 
     act(() => {
-      useMyStore.$.set({ b: 20 })
+      useMyStore.set({ b: 20 })
     })
     expect(hook2.result.current).toEqual([20, true])
     expect(hook2.results.length).toEqual(3) // Re-rendered
     expect(hook1.results.length).toEqual(2) // Not re-rendered because of shallow selector
 
-    expect(useMyStore.$.getSubscribers().size).toEqual(2)
-    expect(useMyStore.$.getInitial()).toEqual({ a: 1, b: 10, c: 100 })
+    expect(useMyStore.getSubscribers().size).toEqual(2)
+    expect(useMyStore.getInitial()).toEqual({ a: 1, b: 10, c: 100 })
   })
 })
 
