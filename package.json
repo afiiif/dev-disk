@@ -60,7 +60,6 @@
     "build": "concurrently -m 8 'yarn:build:*'",
     "build:base": "rollup -c",
     "build:vanilla": "rollup -c --config-vanilla",
-    "build:vanilla:fetcher": "rollup -c --config-vanilla_fetcher",
     "build:react": "rollup -c --config-react",
     "postbuild": "yarn patch-d-ts && yarn copy && yarn patch-old-ts && yarn patch-esm-ts",
     "prettier": "prettier \"*.{js,json,md}\" \"{examples,src,tests,docs}/**/*.{js,jsx,ts,tsx,md,mdx}\" --write",

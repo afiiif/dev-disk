@@ -10,7 +10,6 @@ const extensions = ['.js', '.ts', '.tsx']
 const { root } = path.parse(process.cwd())
 const entries = [
   { find: /.*\/vanilla\.ts$/, replacement: 'dev-disk/vanilla' },
-  { find: /.*\/vanilla\/fetcher\.ts$/, replacement: 'dev-disk/vanilla/fetcher' },
   { find: /.*\/react\.ts$/, replacement: 'dev-disk/react' },
 ]
 
