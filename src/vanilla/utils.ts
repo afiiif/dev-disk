@@ -108,20 +108,29 @@ export const swapKeyValue = <K extends string | number, V extends string | numbe
 }
 
 /**
- * Zzz...
+ * Delay the next operation for a specific duration (in milliseconds).
+ *
+ * @example
+ * ```js
+ * doSomething();
+ * await sleep(5000); // delay next operation by 5 seconds
+ * doSomethingElse();
+ * ```
  */
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 /**
  * Higher-order function to prevent a function throwing error when invoked.
  *
- * It returns an array `[successValue, error]` instead.\
+ * It returns an array `[value, error]` instead.\
+ * It makes error-first handling possible.
+ *
  * Check the result using `if` statement, no more `try-catch` statement.
  *
  * @example
  * ```js
- * const [value, error] = noThrow(JSON.parse)('an-invalid-json-string');
- * if (error) return showToast('Invalid data');
+ * const [value, error] = noThrow(JSON.parse)(data);
+ * if (error) return showToast('Invalid JSON-string input');
  * ```
  */
 export const noThrow =
@@ -138,7 +147,9 @@ export const noThrow =
 /**
  * Higher-order function to prevent an async function throwing promise-rejection error when invoked.
  *
- * It returns an array `[successValue, error]` instead.\
+ * It returns an array `[value, error]` instead.\
+ * It makes error-first handling possible.
+ *
  * Check the result using `if` statement, no more `try-catch` statement.
  *
  * @example
