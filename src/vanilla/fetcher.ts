@@ -75,7 +75,7 @@ const send = async <TResponse, TPayload, TParams extends UrlParams>({
   })
 }
 
-type SendReq = {
+type SendHttpReq = {
   get: <
     TResponse,
     TParams extends UrlParams = Record<string, string | number | boolean | null | undefined>,
@@ -108,7 +108,10 @@ type SendReq = {
   ) => Promise<TResponse>
 }
 
-export const sendReq: SendReq = {
+/**
+ * Send HTTP request.
+ */
+export const http: SendHttpReq = {
   /**
    * Send HTTP request with GET method.
    */
