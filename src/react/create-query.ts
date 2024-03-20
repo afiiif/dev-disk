@@ -20,7 +20,25 @@ export type UseQuery<T extends Query> = UseStores<
   QueryState<T>,
   T['key'] extends Record<string, any> ? T['key'] : Record<string, never>,
   QueryStoreApi<T>
->
+> & {
+  fetch: ((key?: Maybe<T['key']>) => Promise<QueryState<T>>) & {
+    cacheFirst: (key?: Maybe<T['key']>) => Promise<QueryState<T>>
+  }
+  fetchNextPage: (key?: Maybe<T['key']>) => Promise<QueryState<T>>
+  reset: (key?: Maybe<T['key']>) => void
+  invalidate: (key?: Maybe<T['key']>) => void
+  optimisticUpdate: (param: {
+    key: Maybe<T['key']>
+    response: T['response'] | ((prevState: QueryState<T>) => T['response'])
+  }) => { revert: () => void; invalidate: () => void }
+  useInitialResponse: (param: {
+    key: T['key'] extends Record<string, any> ? T['key'] : Record<string, never>
+    response: T['response']
+  }) => void
+  useSuspend: (
+    key?: (T['key'] extends Record<string, any> ? T['key'] : Record<string, never>) | undefined,
+  ) => Extract<QueryState<T>, { status: 'success' }>
+}
 
 export type CreateQueryOptions<T extends Query> = InitQueryOptions<T> &
   CreateStoresOptions<
@@ -215,7 +233,7 @@ export const createQuery = <T extends Query>(options: CreateQueryOptions<T>): Us
 
   const useSuspend = (
     key?: T['key'] extends Record<string, any> ? T['key'] : Record<string, never>,
-  ) => {
+  ): Extract<QueryState<T>, { status: 'success' }> => {
     const state = useQuery(key)
     const store = useQuery.getStore(key)
     if (state.isEmpty) throw store.fetch()
