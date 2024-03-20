@@ -169,7 +169,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
     store.internal = {
       timeout: {},
       promise: {},
-      ignoreResponse: { fetch: true, fetchNextPage: true },
+      ignoreResponse: { fetch: false, fetchNextPage: false },
     }
 
     const getRetryProps = (error: T['error'], retryCount: number) => {
@@ -282,6 +282,7 @@ export const initQuery = <T extends Query>(options: InitQueryOptions<T>) => {
 
       // 🟢
       store.internal.promise.fetchNextPage = new Promise<QueryState<T>>((resolve) => {
+        store.internal.ignoreResponse.fetchNextPage = false
         set({ isWaitingNextPage: true, isGoingToRetryNextPage: false })
         const stateBeforeCallQuery = get()
         queryFn(key, stateBeforeCallQuery)
