@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
       - name: Perform type checking
-        run: yarn pretest
+        run: yarn type-check
 
   test:
     name: Unit test

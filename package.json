@@ -56,6 +56,7 @@
     }
   },
   "scripts": {
+    "prepare": "husky",
     "prebuild": "shx rm -rf dist",
     "build": "concurrently -m 8 'yarn:build:*'",
     "build:base": "rollup -c",
@@ -66,8 +67,8 @@
     "prettier:ci": "prettier '*.{js,json,md}' '{examples,src,tests,docs}/**/*.{js,jsx,ts,tsx,md,mdx}' --list-different",
     "eslint": "eslint --no-eslintrc --c .eslintrc.json --fix '*.{js,json,ts}' '{src,tests}/**/*.{ts,tsx}'",
     "eslint:ci": "eslint --no-eslintrc --c .eslintrc.json '*.{js,json,ts}' '{src,tests}/**/*.{ts,tsx}'",
-    "pretest": "tsc",
-    "test": "vitest --ui --coverage --silent",
+    "type-check": "tsc",
+    "test": "yarn type-check && vitest --ui --coverage --silent",
     "test:ci": "vitest",
     "patch-d-ts": "node -e \"var {entries}=require('./rollup.config.js');require('shelljs').find('dist/**/*.d.ts').forEach(f=>{entries.forEach(({find,replacement})=>require('shelljs').sed('-i',new RegExp(' from \\''+find.source.slice(0,-1)+'\\';$'),' from \\''+replacement+'\\';',f));require('shelljs').sed('-i',/ from '(\\.[^']+)\\.ts';$/,' from \\'\\$1\\';',f)})\"",
     "copy": "shx cp -r dist/src/* dist/esm && shx cp -r dist/src/* dist && shx rm -rf dist/src && shx rm -rf dist/{src,tests} && shx cp package.json readme.md LICENSE dist && json -I -f dist/package.json -e \"this.private=false; this.devDependencies=undefined; this.optionalDependencies=undefined; this.scripts=undefined; this.prettier=undefined;\"",
@@ -104,6 +105,7 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-vitest": "^0.3.20",
+    "husky": "^9.0.11",
     "jsdom": "^23.2.0",
     "json": "^11.0.0",
     "prettier": "^3.2.4",
