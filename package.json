@@ -1,8 +1,24 @@
 {
   "name": "dev-disk",
-  "description": "A JS library",
+  "description": "A tiny utility library for JavaScript/TypeScript project",
+  "keywords": [
+    "utilities",
+    "store",
+    "state",
+    "react",
+    "hooks",
+    "query"
+  ],
   "author": "Muhammad Afifudin",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/afiiif/dev-disk"
+  },
+  "bugs": {
+    "url": "https://github.com/afiiif/dev-disk/issues"
+  },
+  "homepage": "https://github.com/afiiif/dev-disk#readme",
   "private": true,
   "version": "0.8.0",
   "publishConfig": {
