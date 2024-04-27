@@ -3,6 +3,6 @@ import { isClient } from 'dev-disk'
 
 /**
  * Does exactly same as `useLayoutEffect`.\
- * It will use `useEffect` in **server-side** to prevent warning from Next.js.
+ * It will use `useEffect` in **server-side** to prevent warning when executed on server-side.
  */
 export const useIsomorphicLayoutEffect = isClient ? useLayoutEffect : useEffect
