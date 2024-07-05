@@ -1,5 +1,6 @@
+import { getHash } from './hash.ts'
 import { InitStoreOptions, StoreApi, initStore } from './store.ts'
-import { Maybe, getHash, getValue } from './utils.ts'
+import { Maybe, getValue } from './utils.ts'
 
 // ----------------------------------------
 // Type definitions
