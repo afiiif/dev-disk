@@ -18,30 +18,34 @@ You can check it out at [https://www.npmjs.com/package/dev-disk](https://www.npm
 - Vanilla JS 👉 `import { ... } from "dev-disk"`
 - React JS 👉 `import { ... } from "dev-disk/react"`
 
-ℹ️ _At the moment, I'm feeling lazy to write detailed documentation._  
 _If you're interested in diving deeper, feel free to check out the source code._
 
 ## Vanilla JS Utilities
 
-### Basic
+### Common Helpers
 
-- `noop` - Empty function
-- `identity` - Identity function
-- `hasValue` - Check if a value is not `undefined` and not `null`
-- `isObject` - Check if a value is object (`Record<string, any>`)
-- `getValue` - If the value is a function, it will get the returned value, otherwise it will get the value
-- `createError` - Create an Error instance with custom props
-- `getHash` - Get stable hash (string) from object/array
-- `swapKeyValue` - Get a swaped key-value object
-- `sleep` - Delay the next operation for a specific duration
-- `noThrow` - Higher-order function to prevent a function throwing error when invoked
-- `noReject` - Higher-order function to prevent an async function throwing promise-rejection error when invoked
-- `objectToQueryString` - Convert object to search param (string)
-- `queryStringToObject` - Convert search param (string) to object
+- [`noop`](./src/vanilla/utils.ts) - Empty function
+- [`identity`](./src/vanilla/utils.ts) - Identity function
+- [`hasValue`](./src/vanilla/utils.ts) - Check if a value is not `undefined` and not `null`
+- [`isObject`](./src/vanilla/utils.ts) - Check if a value is object (`Record<string, any>`)
+- [`getValue`](./src/vanilla/utils.ts) - If the value is a function, it will get the returned value, otherwise it will get the value
+- [`getHash`](./src/vanilla/utils.ts) - Get stable hash (string) from object/array
+- [`swapKeyValue`](./src/vanilla/utils.ts) - Get a swaped key-value object
+- [`sleep`](./src/vanilla/utils.ts) - Delay the next operation for a specific duration
+- [`split2`](./src/vanilla/utils.ts) - Split string into 2 parts
+- [`cn`](./src/vanilla/utils.ts) - A minimalist `className` utility
 - [`shallow`](./src/vanilla/shallow.ts) - Shallow compare
 
-### Fetcher
+### Error Handling
 
+- [`createError`](./src/vanilla/error-handling.ts) - Create an Error instance with custom props
+- [`noThrow`](./src/vanilla/error-handling.ts) - Higher-order function to prevent a function throwing error when invoked
+- [`noReject`](./src/vanilla/error-handling.ts) - Higher-order function to prevent an async function throwing promise-rejection error when invoked
+
+### Data-Fetching Related
+
+- [`objectToQueryString`](./src/vanilla/url.ts) - Convert object to search param (string)
+- [`queryStringToObject`](./src/vanilla/url.ts) - Convert search param (string) to object
 - [`http`](./src/vanilla/fetcher.ts) - Minimalist abstraction for `fetch` API
   - `http.get`
   - `http.post`
