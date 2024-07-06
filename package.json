@@ -98,7 +98,6 @@
     "@babel/plugin-transform-runtime": "^7.23.7",
     "@babel/plugin-transform-typescript": "^7.23.6",
     "@babel/preset-env": "^7.23.8",
-    "@redux-devtools/extension": "^3.3.0",
     "@rollup/plugin-alias": "^5.1.0",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-node-resolve": "^15.2.3",
