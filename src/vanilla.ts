@@ -1,5 +1,6 @@
 export * from './vanilla/utils.ts'
 export * from './vanilla/shallow.ts'
+export * from './vanilla/error-handling.ts'
 export * from './vanilla/url.ts'
 export * from './vanilla/fetcher.ts'
 export * from './vanilla/hash.ts'
