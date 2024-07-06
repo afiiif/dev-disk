@@ -66,3 +66,31 @@ export const swapKeyValue = <K extends string | number, V extends string | numbe
  * ```
  */
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+/**
+ * A super minimalist className utility.\
+ * Basically it wipes out the falsy values and then concat the string.
+ *
+ * @example
+ * ```js
+ * const isDisabled = false;
+ * const className = cn('foo', 'bar', isDisabled && 'baz');
+ * // Output: 'foo bar'
+ * ```
+ */
+export const cn = (...classNames: (string | boolean | undefined | null)[]) =>
+  classNames.filter(Boolean).join(' ')
+
+/**
+ * Split string into 2 parts.
+ *
+ * @example
+ * ```js
+ * split2('Lorem_Ipsum_Dolor_Sit_Amet', '_');
+ * // Output: ['Lorem', 'Ipsum_Dolor_Sit_Amet']
+ * ```
+ */
+export const split2 = (str: string, separator: string) => {
+  const [firstPart, ...restParts] = str.split(separator)
+  return [firstPart, restParts.join(separator)]
+}
