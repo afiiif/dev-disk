@@ -1,11 +1,11 @@
-// eslint-disable-next-line import/extensions
-import { defineConfig } from 'vitest/config'
+import { resolve } from 'path';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   resolve: {
     alias: [
-      { find: /^dev-disk$/, replacement: './src/index.ts' },
-      { find: /^dev-disk(.*)$/, replacement: './src/$1.ts' },
+      { find: /^dev-disk$/, replacement: resolve('./src/index.ts') },
+      { find: /^dev-disk(.*)$/, replacement: resolve('./src/$1.ts') },
     ],
   },
   test: {
@@ -15,10 +15,13 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     dir: 'tests',
-    reporters: 'basic',
+    reporters: process.env.GITHUB_ACTIONS ? ['default', 'github-actions'] : ['default'],
+    setupFiles: ['tests/_setup.ts'],
     coverage: {
+      include: ['src/**/'],
       reporter: ['text', 'json', 'html', 'text-summary'],
       reportsDirectory: './coverage/',
+      provider: 'v8',
     },
   },
-})
+});
