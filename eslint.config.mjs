@@ -33,12 +33,7 @@ export default defineConfig(
     rules: {
       eqeqeq: 'error',
       curly: ['warn', 'multi-line', 'consistent'],
-      'sort-imports': [
-        'error',
-        {
-          ignoreDeclarationSort: true,
-        },
-      ],
+      'sort-imports': ['error', { ignoreDeclarationSort: true }],
       'import/no-unresolved': ['error', { commonjs: true, amd: true }],
       'import/named': 'off',
       'import/namespace': 'off',
@@ -51,13 +46,7 @@ export default defineConfig(
           alphabetize: { order: 'asc', caseInsensitive: true },
           groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object'],
           'newlines-between': 'never',
-          pathGroups: [
-            {
-              pattern: 'react',
-              group: 'builtin',
-              position: 'before',
-            },
-          ],
+          pathGroups: [{ pattern: 'react', group: 'builtin', position: 'before' }],
           pathGroupsExcludedImportTypes: ['builtin'],
         },
       ],
@@ -66,6 +55,7 @@ export default defineConfig(
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+      'react-hooks/refs': 'off',
     },
   },
   {

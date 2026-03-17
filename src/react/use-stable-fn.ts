@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/refs */
-
 import { useCallback, useRef } from 'react';
 
 /**

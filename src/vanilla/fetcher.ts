@@ -29,8 +29,8 @@ const send = async <TResponse>({ url, params, payload, gql, ...options }: SendRe
   if (gql) {
     defaultOptions.method = 'POST';
     defaultOptions.body = JSON.stringify({ query: gql, variables: payload });
-  } else if (options.method && options.method.toLowerCase() !== 'get') {
-    defaultOptions.body = payload === undefined ? null : JSON.stringify(payload);
+  } else if (payload !== undefined) {
+    defaultOptions.body = JSON.stringify(payload);
   }
 
   const finalUrl = params ? `${url}?${objectToQueryString(params)}` : url;
@@ -48,6 +48,16 @@ const send = async <TResponse>({ url, params, payload, gql, ...options }: SendRe
   if (contentType?.includes('application/json') || isJsonFile) {
     const resJson = await res.json();
 
+    if (!res.ok) {
+      throw createError('Fetch error', {
+        contentType,
+        status: res.status,
+        statusText: res.statusText,
+        response: resJson,
+        request: finalOptions,
+      });
+    }
+
     if (gql) {
       if (resJson.errors) {
         throw createError('Error GraphQL response', {
@@ -61,15 +71,7 @@ const send = async <TResponse>({ url, params, payload, gql, ...options }: SendRe
       return resJson.data as TResponse;
     }
 
-    if (res.ok) return resJson as TResponse;
-
-    throw createError('Fetch error', {
-      contentType,
-      status: res.status,
-      statusText: res.statusText,
-      response: resJson,
-      request: finalOptions,
-    });
+    return resJson as TResponse;
   }
 
   // Try getting raw text response, then throw error with that text response.
@@ -88,7 +90,7 @@ type BaseOptions = Omit<RequestInit, 'body' | 'method'> & { url: string; params?
 /**
  * Send HTTP request.
  */
-export const http = {
+export const sendReq = {
   /**
    * Send HTTP request with GET method.
    */
@@ -108,9 +110,11 @@ export const http = {
    */
   delete: <TResponse>(options: BaseOptions & { payload?: any }) =>
     send<TResponse>({ method: 'delete', ...options }),
-  /**
-   * Send HTTP request for GraphQL server.
-   */
-  gql: <TResponse>(options: BaseOptions & { payload?: any }) =>
-    send<TResponse>({ method: 'post', ...options }),
 };
+
+/**
+ * Send HTTP request for GraphQL server.
+ */
+export const sendReqGQL = <TResponse>(
+  options: BaseOptions & { method?: RequestInit['method']; payload?: any },
+) => send<TResponse>({ ...options, method: options.method || 'post' });
