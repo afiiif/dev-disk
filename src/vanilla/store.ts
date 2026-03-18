@@ -5,8 +5,8 @@ export type SetState<TState> = Partial<TState> | ((state: TState) => Partial<TSt
 export type Subscriber<TState> = (state: TState, prevState: TState) => void;
 
 export type StoreApi<TState extends Record<string, any>> = {
-  set: (value: SetState<TState>) => void;
-  get: () => TState;
+  setState: (value: SetState<TState>) => void;
+  getState: () => TState;
   subscribe: (subscriber: Subscriber<TState>) => () => void;
   getSubscribers: () => Set<Subscriber<TState>>;
 };
@@ -43,16 +43,16 @@ export const initStore = <TState extends Record<string, any>>(
   };
 
   let state = initialState;
-  const get = () => state;
-  const set = (value: SetState<TState>) => {
+  const getState = () => state;
+  const setState = (value: SetState<TState>) => {
     const prevState = state;
     state = { ...state, ...getValue(value, state) };
     subscribers.forEach((subscriber) => subscriber(state, prevState));
   };
 
   return {
-    set,
-    get,
+    getState,
+    setState,
     subscribe,
     getSubscribers,
   };
