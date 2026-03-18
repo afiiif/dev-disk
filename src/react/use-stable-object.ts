@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { getHash } from 'dev-disk';
+import { getHash } from '../vanilla.ts';
 
 /**
  * Returns a stable object reference together with a deterministic hash.
