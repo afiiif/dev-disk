@@ -1,5 +1,5 @@
 import { type InitStoreOptions, type SetState, initStore, noop } from '../vanilla.ts';
-import { useSyncStore } from './use-sync-store.ts';
+import { useStoreState } from './use-store.ts';
 
 export type MutationState<TData, TVariable> = {
   isPending: boolean;
@@ -77,7 +77,7 @@ export const createMutation = <TData, TVariable = never>(
 
   const store = initStore(initialState, options);
   const useStore = <TStateSlice = TState>(selector?: (state: TState) => TStateSlice) =>
-    useSyncStore(store, selector);
+    useStoreState(store, selector);
 
   const execute = (variable: TVariable) => {
     const stateBeforeExecute = store.getState();

@@ -1,5 +1,5 @@
 import { type InitStoreOptions, initStore } from '../vanilla.ts';
-import { useSyncStore } from './use-sync-store.ts';
+import { useStoreState } from './use-store.ts';
 
 export const createStore = <TState extends Record<string, any>>(
   initialState: TState,
@@ -7,7 +7,7 @@ export const createStore = <TState extends Record<string, any>>(
 ) => {
   const store = initStore(initialState, options);
   const useStore = <TStateSlice = TState>(selector?: (state: TState) => TStateSlice) =>
-    useSyncStore(store, selector);
+    useStoreState(store, selector);
 
   return Object.assign(useStore, store);
 };
