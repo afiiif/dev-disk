@@ -56,7 +56,10 @@ export type MutationOptions<TData, TVariable> = InitStoreOptions<
 };
 
 export const createMutation = <TData, TVariable = never>(
-  fn: (variable: TVariable, stateBeforeExecute: MutationState<TData, TVariable>) => Promise<TData>,
+  mutationFn: (
+    variable: TVariable,
+    stateBeforeExecute: MutationState<TData, TVariable>,
+  ) => Promise<TData>,
   options: MutationOptions<TData, TVariable> = {},
 ) => {
   const { onSuccess = noop, onError, onSettled = noop } = options;
@@ -84,7 +87,7 @@ export const createMutation = <TData, TVariable = never>(
     store.setState({ isPending: true });
 
     return new Promise<{ variable: TVariable; data?: TData; error?: any }>((resolve) => {
-      fn(variable, stateBeforeExecute)
+      mutationFn(variable, stateBeforeExecute)
         .then((data) => {
           store.setState({
             state: 'SUCCESS',
@@ -124,6 +127,7 @@ export const createMutation = <TData, TVariable = never>(
 
   return Object.assign(useStore, {
     subscribe: store.subscribe,
+    getSubscribers: store.getSubscribers,
     getState: store.getState,
     setState: (value: SetState<TState>) => {
       console.debug('Manual setState (not via provided actions) on mutation store');
