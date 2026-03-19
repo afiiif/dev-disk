@@ -12,10 +12,10 @@ export type StoreApi<TState extends Record<string, any>> = {
 };
 
 export type InitStoreOptions<TState extends Record<string, any>> = {
-  onFirstSubscribe?: (state: TState) => void;
-  onSubscribe?: (state: TState) => void;
-  onUnsubscribe?: (state: TState) => void;
-  onLastUnsubscribe?: (state: TState) => void;
+  onFirstSubscribe?: (state: TState, store: StoreApi<TState>) => void;
+  onSubscribe?: (state: TState, store: StoreApi<TState>) => void;
+  onUnsubscribe?: (state: TState, store: StoreApi<TState>) => void;
+  onLastUnsubscribe?: (state: TState, store: StoreApi<TState>) => void;
 };
 
 export const initStore = <TState extends Record<string, any>>(
@@ -33,12 +33,12 @@ export const initStore = <TState extends Record<string, any>>(
   const getSubscribers = () => subscribers;
   const subscribe = (subscriber: Subscriber<TState>) => {
     subscribers.add(subscriber);
-    if (subscribers.size === 1) onFirstSubscribe(state);
-    onSubscribe(state);
+    if (subscribers.size === 1) onFirstSubscribe(state, storeApi);
+    onSubscribe(state, storeApi);
     return () => {
       subscribers.delete(subscriber);
-      onUnsubscribe(state);
-      if (subscribers.size === 0) onLastUnsubscribe(state);
+      onUnsubscribe(state, storeApi);
+      if (subscribers.size === 0) onLastUnsubscribe(state, storeApi);
     };
   };
 
@@ -50,10 +50,11 @@ export const initStore = <TState extends Record<string, any>>(
     subscribers.forEach((subscriber) => subscriber(state, prevState));
   };
 
-  return {
+  const storeApi = {
     getState,
     setState,
     subscribe,
     getSubscribers,
   };
+  return storeApi;
 };
