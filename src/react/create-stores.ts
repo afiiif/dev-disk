@@ -22,7 +22,18 @@ export const createStores = <TState extends Record<string, any>, TKey extends Re
       return useStoreState(store, selector);
     };
 
-    return Object.assign(useStore, store);
+    return Object.assign(useStore, {
+      ...store,
+      delete: () => {
+        if (store.getSubscribers().size > 0) {
+          console.warn(
+            'Cannot delete store while it still has active subscribers. Unsubscribe all listeners before deleting the store.',
+          );
+          return false;
+        }
+        return stores.delete(keyHash);
+      },
+    });
   };
 
   return getStore;

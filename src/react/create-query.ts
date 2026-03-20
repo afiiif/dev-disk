@@ -167,10 +167,15 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
     revalidate: () => Promise<TState>;
     invalidate: () => void;
     reset: () => void;
+    delete: () => boolean;
   };
   const internals = new WeakMap<StoreApi<TState>, Internal>();
 
-  const configureInternals = (store: StoreApi<TState>, variable: TVariable): Internal => ({
+  const configureInternals = (
+    store: StoreApi<TState>,
+    variable: TVariable,
+    variableHash: string,
+  ): Internal => ({
     metadata: {},
     execute: () => execute(store, variable),
     revalidate: () => revalidate(store, variable),
@@ -187,6 +192,16 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
       }
       metadata.promise = undefined;
       store.setState(initialState);
+    },
+    delete: () => {
+      if (store.getSubscribers().size > 0) {
+        console.warn(
+          'Cannot delete query store while it still has active subscribers. Unsubscribe all listeners before deleting the store.',
+        );
+        return false;
+      }
+      internals.get(store)!.reset();
+      return stores.delete(variableHash);
     },
   });
 
@@ -276,14 +291,14 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
   // -------
 
   const getStore = (variable: TVariable = {} as TVariable) => {
-    const keyHash = getHash(variable);
+    const variableHash = getHash(variable);
     let store: StoreApi<TState>;
-    if (stores.has(keyHash)) {
-      store = stores.get(keyHash)!;
+    if (stores.has(variableHash)) {
+      store = stores.get(variableHash)!;
     } else {
       store = initStore(initialState, configureStoreEvents());
-      stores.set(keyHash, store);
-      internals.set(store, configureInternals(store, variable));
+      stores.set(variableHash, store);
+      internals.set(store, configureInternals(store, variable, variableHash));
     }
 
     const useStore = <TStateSlice = TState>(
