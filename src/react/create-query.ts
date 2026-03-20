@@ -170,13 +170,13 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
   };
   const internals = new WeakMap<StoreApi<TState>, Internal>();
 
-  const configureInternals = (store: StoreApi<TState>, key: TVariable): Internal => ({
+  const configureInternals = (store: StoreApi<TState>, variable: TVariable): Internal => ({
     metadata: {},
-    execute: () => execute(store, key),
-    revalidate: () => revalidate(store, key),
+    execute: () => execute(store, variable),
+    revalidate: () => revalidate(store, variable),
   });
 
-  const execute = async (store: StoreApi<TState>, key: TVariable) => {
+  const execute = async (store: StoreApi<TState>, variable: TVariable) => {
     const { metadata } = internals.get(store)!;
     if (metadata.promise) return metadata.promise;
     clearTimeout(metadata.retryTimeoutId);
@@ -190,7 +190,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
           isRetrying: !!metadata.retryResolver,
           retryCount: metadata.retryResolver ? stateBeforeExecute.retryCount + 1 : 0,
         });
-        queryFn(key, stateBeforeExecute)
+        queryFn(variable, stateBeforeExecute)
           .then((data) => {
             store.setState({
               isPending: false,
@@ -208,7 +208,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
             resolve(store.getState());
             metadata.retryResolver?.(store.getState());
             metadata.retryResolver = undefined;
-            onSuccess(data, key, stateBeforeExecute);
+            onSuccess(data, variable, stateBeforeExecute);
           })
           .catch((error) => {
             store.setState({
@@ -231,7 +231,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
                 error,
                 errorUpdatedAt: Date.now(),
               });
-              if (onError) onError(error, key, stateBeforeExecute);
+              if (onError) onError(error, variable, stateBeforeExecute);
               else console.error(state);
               resolve(state);
               metadata.retryResolver?.(state);
@@ -248,25 +248,25 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
     return createPromise();
   };
 
-  const revalidate = async (store: StoreApi<TState>, key: TVariable) => {
+  const revalidate = async (store: StoreApi<TState>, variable: TVariable) => {
     const { metadata } = internals.get(store)!;
     if (metadata.promise) return metadata.promise;
     const state = store.getState();
     if (state.dataUpdatedAt && state.dataUpdatedAt + staleTime > Date.now()) return state;
-    return execute(store, key);
+    return execute(store, variable);
   };
 
   // -------
 
-  const getStore = (key: TVariable = {} as TVariable) => {
-    const keyHash = getHash(key);
+  const getStore = (variable: TVariable = {} as TVariable) => {
+    const keyHash = getHash(variable);
     let store: StoreApi<TState>;
     if (stores.has(keyHash)) {
       store = stores.get(keyHash)!;
     } else {
       store = initStore(initialState, configureStoreEvents());
       stores.set(keyHash, store);
-      internals.set(store, configureInternals(store, key));
+      internals.set(store, configureInternals(store, variable));
     }
 
     const useStore = <TStateSlice = TState>(
@@ -292,7 +292,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
 
       // Execute queryFn on mount & on re-render
       useIsomorphicLayoutEffect(() => {
-        if (options.enabled !== false) revalidate(store, key);
+        if (options.enabled !== false) revalidate(store, variable);
       }, [store, options.enabled]);
 
       // Handle keepPreviousData
