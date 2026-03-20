@@ -102,13 +102,13 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
   const stores = new Map<string, StoreApi<TState>>();
 
   const configureStoreEvents = (keyHash: string): InitStoreOptions<TState> => {
-    const revalidate = () => internals.get(keyHash)!.revalidate();
+    const revalidate = () => internals.get(stores.get(keyHash)!)!.revalidate();
     return {
       ...options,
       onFirstSubscribe: (state, store) => {
         options.onFirstSubscribe?.(state, store);
         // Cancel garbage collection timeout
-        const { metadata } = internals.get(keyHash)!;
+        const { metadata } = internals.get(store)!;
         clearTimeout(metadata.garbageCollectionTimeoutId);
         // Attach window events
         if (isClient) {
@@ -119,7 +119,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
       onLastUnsubscribe: (state, store) => {
         options.onLastUnsubscribe?.(state, store);
         // Start garbage collection timeout
-        const { metadata } = internals.get(keyHash)!;
+        const { metadata } = internals.get(store)!;
         metadata.garbageCollectionTimeoutId = setTimeout(() => {
           store.setState(initialState);
         }, gcTime);
@@ -147,20 +147,16 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
     execute: () => Promise<TState>;
     revalidate: () => Promise<TState>;
   };
-  const internals = new Map<string, Internal>();
+  const internals = new WeakMap<StoreApi<TState>, Internal>();
 
-  const configureInternals = (
-    store: StoreApi<TState>,
-    key: TVariable,
-    keyHash: string,
-  ): Internal => ({
+  const configureInternals = (store: StoreApi<TState>, key: TVariable): Internal => ({
     metadata: {},
-    execute: () => execute(store, key, keyHash),
-    revalidate: () => revalidate(store, key, keyHash),
+    execute: () => execute(store, key),
+    revalidate: () => revalidate(store, key),
   });
 
-  const execute = async (store: StoreApi<TState>, key: TVariable, keyHash: string) => {
-    const { metadata } = internals.get(keyHash)!;
+  const execute = async (store: StoreApi<TState>, key: TVariable) => {
+    const { metadata } = internals.get(store)!;
     if (metadata.promise) return metadata.promise;
     clearTimeout(metadata.retryTimeoutId);
 
@@ -231,12 +227,12 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
     return createPromise();
   };
 
-  const revalidate = async (store: StoreApi<TState>, key: TVariable, keyHash: string) => {
-    const { metadata } = internals.get(keyHash)!;
+  const revalidate = async (store: StoreApi<TState>, key: TVariable) => {
+    const { metadata } = internals.get(store)!;
     if (metadata.promise) return metadata.promise;
     const state = store.getState();
     if (state.dataUpdatedAt && state.dataUpdatedAt + staleTime > Date.now()) return state;
-    return execute(store, key, keyHash);
+    return execute(store, key);
   };
 
   // -------
@@ -249,7 +245,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
     } else {
       store = initStore(initialState, configureStoreEvents(keyHash));
       stores.set(keyHash, store);
-      internals.set(keyHash, configureInternals(store, key, keyHash));
+      internals.set(store, configureInternals(store, key));
     }
 
     const useStore = <TStateSlice = TState>(
@@ -275,7 +271,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
 
       // Execute queryFn on mount & on re-render
       useIsomorphicLayoutEffect(() => {
-        if (options.enabled !== false) revalidate(store, key, keyHash);
+        if (options.enabled !== false) revalidate(store, key);
       }, [store, options.enabled]);
 
       // Handle keepPreviousData
@@ -309,7 +305,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
         console.debug('Manual setState (not via provided actions) on query store');
         store.setState(value);
       },
-      ...internals.get(keyHash)!,
+      ...internals.get(store)!,
     });
   };
 
