@@ -335,8 +335,8 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
 
 let focusListenersAdded = false;
 const focusListeners = new Set<() => void>();
-const onWindowFocus = () => focusListeners.forEach((fn) => fn());
+const onWindowFocus = () => [...focusListeners].forEach((fn) => fn());
 
 let onlineListenersAdded = false;
 const onlineListeners = new Set<() => void>();
-const onWindowOnline = () => onlineListeners.forEach((fn) => fn());
+const onWindowOnline = () => [...onlineListeners].forEach((fn) => fn());
