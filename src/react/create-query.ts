@@ -141,6 +141,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
     metadata: {
       promise?: Promise<TState> | undefined;
       retryTimeoutId?: number;
+      retryResolver?: ((value: TState | PromiseLike<TState>) => void) | undefined;
       garbageCollectionTimeoutId?: number;
     };
     execute: () => Promise<TState>;
@@ -161,15 +162,16 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
   const execute = async (store: StoreApi<TState>, key: TVariable, keyHash: string) => {
     const { metadata } = internals.get(keyHash)!;
     if (metadata.promise) return metadata.promise;
+    clearTimeout(metadata.retryTimeoutId);
 
-    const createPromise = (outerResolve?: (value: TState | PromiseLike<TState>) => void) => {
+    const createPromise = () => {
       const promise = new Promise<TState>((resolve) => {
         const stateBeforeExecute = store.getState();
         store.setState({
           isPending: true,
           isRevalidating: stateBeforeExecute.state === 'SUCCESS',
-          isRetrying: !!outerResolve,
-          retryCount: outerResolve ? stateBeforeExecute.retryCount + 1 : 0,
+          isRetrying: !!metadata.retryResolver,
+          retryCount: metadata.retryResolver ? stateBeforeExecute.retryCount + 1 : 0,
         });
         queryFn(key, stateBeforeExecute)
           .then((data) => {
@@ -187,7 +189,8 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
               errorUpdatedAt: undefined,
             });
             resolve(store.getState());
-            outerResolve?.(store.getState());
+            metadata.retryResolver?.(store.getState());
+            metadata.retryResolver = undefined;
             onSuccess(data, key, stateBeforeExecute);
           })
           .catch((error) => {
@@ -198,9 +201,8 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
             });
             const [shouldRetry, retryDelay] = shouldRetryFn(error, store.getState());
             if (shouldRetry) {
-              metadata.retryTimeoutId = setTimeout(() => {
-                createPromise(resolve);
-              }, retryDelay);
+              metadata.retryResolver = resolve;
+              metadata.retryTimeoutId = setTimeout(createPromise, retryDelay);
             } else {
               const state = store.getState();
               store.setState({
@@ -215,7 +217,8 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
               if (onError) onError(error, key, stateBeforeExecute);
               else console.error(state);
               resolve(state);
-              outerResolve?.(state);
+              metadata.retryResolver?.(state);
+              metadata.retryResolver = undefined;
             }
           })
           .finally(() => {
@@ -225,8 +228,6 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
       metadata.promise = promise;
       return promise;
     };
-
-    clearTimeout(metadata.retryTimeoutId);
     return createPromise();
   };
 
