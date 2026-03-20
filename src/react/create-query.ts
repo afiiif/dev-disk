@@ -101,39 +101,60 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
 
   const stores = new Map<string, StoreApi<TState>>();
 
-  const configureStoreEvents = (keyHash: string): InitStoreOptions<TState> => {
-    const revalidate = () => internals.get(stores.get(keyHash)!)!.revalidate();
-    return {
-      ...options,
-      onFirstSubscribe: (state, store) => {
-        options.onFirstSubscribe?.(state, store);
-        // Cancel garbage collection timeout
-        const { metadata } = internals.get(store)!;
-        clearTimeout(metadata.garbageCollectionTimeoutId);
-        // Attach window events
-        if (isClient) {
-          if (revalidateOnFocus) window.addEventListener('focus', revalidate);
-          if (revalidateOnReconnect) window.addEventListener('online', revalidate);
+  const configureStoreEvents = (): InitStoreOptions<TState> => ({
+    ...options,
+    onFirstSubscribe: (state, store) => {
+      options.onFirstSubscribe?.(state, store);
+      // Cancel garbage collection timeout
+      const { metadata, revalidate } = internals.get(store)!;
+      clearTimeout(metadata.garbageCollectionTimeoutId);
+      // Attach window events
+      if (isClient) {
+        if (revalidateOnFocus) {
+          focusListeners.add(revalidate);
+          if (!focusListenersAdded) {
+            window.addEventListener('focus', onWindowFocus);
+            focusListenersAdded = true;
+          }
         }
-      },
-      onLastUnsubscribe: (state, store) => {
-        options.onLastUnsubscribe?.(state, store);
-        // Start garbage collection timeout
-        const { metadata } = internals.get(store)!;
-        metadata.garbageCollectionTimeoutId = setTimeout(() => {
-          store.setState(initialState);
-        }, gcTime);
-        // Cancel retry
-        clearTimeout(metadata.retryTimeoutId);
-        store.setState({ retryCount: 0 });
-        // Detach window events
-        if (isClient) {
-          if (revalidateOnFocus) window.removeEventListener('focus', revalidate);
-          if (revalidateOnReconnect) window.removeEventListener('online', revalidate);
+        if (revalidateOnReconnect) {
+          onlineListeners.add(revalidate);
+          if (!onlineListenersAdded) {
+            window.addEventListener('online', onWindowOnline);
+            onlineListenersAdded = true;
+          }
         }
-      },
-    };
-  };
+      }
+    },
+    onLastUnsubscribe: (state, store) => {
+      options.onLastUnsubscribe?.(state, store);
+      // Start garbage collection timeout
+      const { metadata, revalidate } = internals.get(store)!;
+      metadata.garbageCollectionTimeoutId = setTimeout(() => {
+        store.setState(initialState);
+      }, gcTime);
+      // Cancel retry
+      clearTimeout(metadata.retryTimeoutId);
+      store.setState({ retryCount: 0 });
+      // Detach window events
+      if (isClient) {
+        if (revalidateOnFocus) {
+          focusListeners.delete(revalidate);
+          if (focusListeners.size === 0) {
+            window.removeEventListener('focus', onWindowFocus);
+            focusListenersAdded = false;
+          }
+        }
+        if (revalidateOnReconnect) {
+          onlineListeners.delete(revalidate);
+          if (onlineListeners.size === 0) {
+            window.removeEventListener('online', onWindowOnline);
+            onlineListenersAdded = false;
+          }
+        }
+      }
+    },
+  });
 
   // -------
 
@@ -243,7 +264,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
     if (stores.has(keyHash)) {
       store = stores.get(keyHash)!;
     } else {
-      store = initStore(initialState, configureStoreEvents(keyHash));
+      store = initStore(initialState, configureStoreEvents());
       stores.set(keyHash, store);
       internals.set(store, configureInternals(store, key));
     }
@@ -311,3 +332,11 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
 
   return getStore;
 };
+
+let focusListenersAdded = false;
+const focusListeners = new Set<() => void>();
+const onWindowFocus = () => focusListeners.forEach((fn) => fn());
+
+let onlineListenersAdded = false;
+const onlineListeners = new Set<() => void>();
+const onWindowOnline = () => onlineListeners.forEach((fn) => fn());
