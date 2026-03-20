@@ -133,9 +133,6 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
       metadata.garbageCollectionTimeoutId = setTimeout(() => {
         store.setState(initialState);
       }, gcTime);
-      // Cancel retry
-      clearTimeout(metadata.retryTimeoutId);
-      store.setState({ retryCount: 0 });
       // Detach window events
       if (isClient) {
         if (revalidateOnFocus) {
@@ -161,12 +158,15 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
   type Internal = {
     metadata: {
       promise?: Promise<TState> | undefined;
+      promiseResolver?: ((value: TState | PromiseLike<TState>) => void) | undefined;
       retryTimeoutId?: number;
       retryResolver?: ((value: TState | PromiseLike<TState>) => void) | undefined;
       garbageCollectionTimeoutId?: number;
     };
     execute: () => Promise<TState>;
     revalidate: () => Promise<TState>;
+    invalidate: () => void;
+    reset: () => void;
   };
   const internals = new WeakMap<StoreApi<TState>, Internal>();
 
@@ -174,6 +174,20 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
     metadata: {},
     execute: () => execute(store, variable),
     revalidate: () => revalidate(store, variable),
+    invalidate: () => store.setState({ dataUpdatedAt: 1 }),
+    reset: () => {
+      const { metadata } = internals.get(store)!;
+      clearTimeout(metadata.retryTimeoutId);
+      if (metadata.retryResolver || metadata.promiseResolver) {
+        console.debug('Ongoing query execution has been ignored');
+        metadata.promiseResolver?.(initialState);
+        metadata.retryResolver?.(initialState);
+        metadata.promiseResolver = undefined;
+        metadata.retryResolver = undefined;
+      }
+      metadata.promise = undefined;
+      store.setState(initialState);
+    },
   });
 
   const execute = async (store: StoreApi<TState>, variable: TVariable) => {
@@ -183,6 +197,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
 
     const createPromise = () => {
       const promise = new Promise<TState>((resolve) => {
+        metadata.promiseResolver = resolve;
         const stateBeforeExecute = store.getState();
         store.setState({
           isPending: true,
@@ -217,7 +232,8 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
               isRetrying: false,
             });
             const [shouldRetry, retryDelay] = shouldRetryFn(error, store.getState());
-            if (shouldRetry) {
+            const hasSubscriber = store.getSubscribers().size > 0;
+            if (shouldRetry && hasSubscriber) {
               metadata.retryResolver = resolve;
               metadata.retryTimeoutId = setTimeout(createPromise, retryDelay);
             } else {
@@ -240,6 +256,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
           })
           .finally(() => {
             metadata.promise = undefined;
+            metadata.promiseResolver = undefined;
           });
       });
       metadata.promise = promise;
