@@ -184,7 +184,9 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
       const { metadata } = internals.get(store)!;
       clearTimeout(metadata.retryTimeoutId);
       if (metadata.retryResolver || metadata.promiseResolver) {
-        console.debug('Ongoing query execution has been ignored');
+        console.debug(
+          'Ongoing query execution was ignored due to reset(). The result will not update the store.',
+        );
         metadata.promiseResolver?.(initialState);
         metadata.retryResolver?.(initialState);
         metadata.promiseResolver = undefined;

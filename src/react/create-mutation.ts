@@ -84,6 +84,11 @@ export const createMutation = <TData, TVariable = never>(
 
   const execute = (variable: TVariable) => {
     const stateBeforeExecute = store.getState();
+    if (stateBeforeExecute.isPending) {
+      console.warn(
+        'Mutation executed while a previous execution is still pending. This may cause race conditions or unexpected state updates.',
+      );
+    }
     store.setState({ isPending: true });
 
     return new Promise<{ variable: TVariable; data?: TData; error?: any }>((resolve) => {
@@ -134,6 +139,13 @@ export const createMutation = <TData, TVariable = never>(
       store.setState(value);
     },
     execute,
-    reset: () => store.setState(initialState),
+    reset: () => {
+      if (store.getState().isPending) {
+        console.warn(
+          'Mutation state was reset while a request is still pending. The request will continue, but its result may override the reset state.',
+        );
+      }
+      store.setState(initialState);
+    },
   });
 };
