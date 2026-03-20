@@ -88,6 +88,7 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
   const initialState = {
     isPending: false,
     isRevalidating: false,
+    isRetrying: false,
     retryCount: 0,
     state: 'INITIAL',
     isSuccess: false,
@@ -282,14 +283,14 @@ export const createQuery = <TData, TVariable extends Record<string, any> = never
         data: storeState.data,
         dataUpdatedAt: storeState.dataUpdatedAt,
       });
-      if (storeState.data) {
+      if (hasValue(storeState.data)) {
         lastSuccessData.current = {
           data: storeState.data,
           dataUpdatedAt: storeState.dataUpdatedAt,
         };
       }
       let storeStateToBeUsed = storeState;
-      if (options.keepPreviousData && !storeState.data) {
+      if (options.keepPreviousData && !hasValue(storeState.data)) {
         const hasPreviousData = hasValue(lastSuccessData.current.data);
         if (hasPreviousData) {
           storeStateToBeUsed = { ...storeState, ...lastSuccessData.current } as TState;
